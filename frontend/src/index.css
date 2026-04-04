@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 228 12% 8%;
+    --foreground: 220 20% 92%;
+
+    --card: 228 10% 12%;
+    --card-foreground: 220 20% 92%;
+
+    --popover: 228 10% 14%;
+    --popover-foreground: 220 20% 92%;
+
+    --primary: 160 84% 44%;
+    --primary-foreground: 228 12% 8%;
+
+    --secondary: 228 10% 16%;
+    --secondary-foreground: 220 20% 80%;
+
+    --muted: 228 8% 18%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 265 80% 60%;
+    --accent-foreground: 220 20% 95%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 220 20% 95%;
+
+    --border: 228 10% 18%;
+    --input: 228 10% 20%;
+    --ring: 160 84% 44%;
+
+    --radius: 0.75rem;
+
+    --canvas: 228 14% 6%;
+    --canvas-grid: 228 10% 12%;
+    --node-trigger: 45 90% 55%;
+    --node-action: 200 80% 55%;
+    --node-condition: 265 80% 60%;
+    --node-output: 160 84% 44%;
+    --edge-color: 228 10% 30%;
+    --edge-active: 160 84% 44%;
+
+    --sidebar-background: 228 10% 10%;
+    --sidebar-foreground: 220 20% 80%;
+    --sidebar-primary: 160 84% 44%;
+    --sidebar-primary-foreground: 228 12% 8%;
+    --sidebar-accent: 228 10% 16%;
+    --sidebar-accent-foreground: 220 20% 92%;
+    --sidebar-border: 228 10% 16%;
+    --sidebar-ring: 160 84% 44%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+}
+
+/* React Flow overrides */
+.react-flow__background {
+  background-color: hsl(var(--canvas)) !important;
+}
+
+.react-flow__minimap {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius) !important;
+}
+
+.react-flow__controls {
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background-color: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+  fill: hsl(var(--foreground)) !important;
+}
+
+.react-flow__controls-button:hover {
+  background-color: hsl(var(--muted)) !important;
+}
+
+.react-flow__edge-path {
+  stroke: hsl(var(--edge-color)) !important;
+  stroke-width: 2 !important;
+}
+
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: hsl(var(--edge-active)) !important;
+  stroke-width: 3 !important;
+}
+
+.react-flow__connection-line {
+  stroke: hsl(var(--primary)) !important;
+  stroke-width: 2 !important;
+  stroke-dasharray: 5 5;
+}
+
+.react-flow__handle {
+  width: 12px !important;
+  height: 12px !important;
+  border: 2px solid hsl(var(--primary)) !important;
+  background: hsl(var(--card)) !important;
+  transition: all 0.15s ease;
+}
+
+.react-flow__handle:hover {
+  background: hsl(var(--primary)) !important;
+  transform: scale(1.3);
+}
