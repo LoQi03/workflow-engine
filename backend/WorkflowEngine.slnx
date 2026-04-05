@@ -2,5 +2,6 @@
   <Project Path="WorkflowEngine.Abstraction/WorkflowEngine.Abstraction.csproj" Id="652a9e20-9aa2-4a0a-aa2e-17f6ad75c1ba" />
   <Project Path="WorkflowEngine.BusinessLogic/WorkflowEngine.BusinessLogic.csproj" Id="b24bbb7b-ce05-45a7-ab74-388b8b3d2c94" />
   <Project Path="WorkflowEngine.Data/WorkflowEngine.Data.csproj" Id="a0b12571-c948-4995-8b83-c257463eea6f" />
+  <Project Path="WorkflowEngine.Endpoint/WorkflowEngine.Endpoint.csproj" Id="f9e5f052-5109-4827-a64e-0bf8878f7a4d" />
   <Project Path="WorkflowEngine.Service/WorkflowEngine.Service.csproj" />
 </Solution>
