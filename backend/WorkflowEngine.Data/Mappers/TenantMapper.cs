@@ -7,19 +7,20 @@ using WorkflowEngine.Data.Entities;
 namespace WorkflowEngine.Data.Mappers;
 
 [RegisterDI(typeof(IMapper<TenantDto, Tenant>))]
-public class TenantMapper : BaseMapper<TenantDto, Tenant>
+public class TenantMapper(
+    IMapper<CompanyDto, Company> companyMapper) : BaseMapper<TenantDto, Tenant>
 {
     public override TenantDto MapToDto(Tenant entity) => new()
     {
         Id = entity.Id,
         Name = entity.Name,
-        CompanyId = entity.CompanyId
+        Companies = entity.Companies?.Select(companyMapper.MapToDto).ToList()
     };
 
     public override Tenant MapToEntity(TenantDto dto) => new()
     {
         Id = dto.Id,
         Name = dto.Name ?? string.Empty,
-        CompanyId = dto.CompanyId ?? 0
+        Companies = dto.Companies?.Select(companyMapper.MapToEntity).ToList() ?? []
     };
 }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Abstraction.Dtos;
@@ -7,6 +8,7 @@ namespace WorkflowEngine.Endpoint.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class TenantController(ITenantService tenantService) : ControllerBase
 {
     [HttpGet(Name = $"{nameof(TenantController)}.{nameof(GetAll)}")]
@@ -26,6 +28,7 @@ public class TenantController(ITenantService tenantService) : ControllerBase
         return tenant is null ? NotFound() : Ok(tenant);
     }
 
+    [AllowAnonymous]
     [HttpPost(Name = $"{nameof(TenantController)}.{nameof(Create)}")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult<TenantDto>> Create([FromBody] TenantDto dto)

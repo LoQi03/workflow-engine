@@ -7,9 +7,6 @@ public class Tenant : IBaseEntity, IRecordHistory
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 
-    public int CompanyId { get; set; }
-    public Company Company { get; set; } = null!;
-
     public DateTime CreatedAt { get; set; }
     public int CreatedUserId { get; set; }
     public DateTime? ModifiedAt { get; set; }
@@ -18,5 +15,5 @@ public class Tenant : IBaseEntity, IRecordHistory
     public int? DeletedUserId { get; set; }
 
     public ICollection<User> Users { get; set; } = [];
-    public ICollection<Company> Companys { get; set; } = [];
+    public ICollection<Company> Companies { get; set; } = [];
 }

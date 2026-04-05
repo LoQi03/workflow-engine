@@ -52,7 +52,7 @@ public class BaseRepository<TEntity, TDto>(
     /// </summary>
     /// <returns>A task that represents the asynchronous operation. The task result contains an enumerable collection of data
     /// transfer objects representing all entities in the data source. The collection is empty if no entities are found.</returns>
-    public async Task<IEnumerable<TDto>> GetAllAsync()
+    public virtual async Task<IEnumerable<TDto>> GetAllAsync()
     {
         var entities = await _dbSet.AsNoTracking().ToListAsync();
         return _mapper.MapToDtos(entities);
@@ -64,7 +64,7 @@ public class BaseRepository<TEntity, TDto>(
     /// <param name="id">The unique identifier of the entity to retrieve.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the DTO corresponding to the
     /// specified identifier, or null if no matching entity is found.</returns>
-    public async Task<TDto?> GetByIdAsync(int id)
+    public virtual async Task<TDto?> GetByIdAsync(int id)
     {
         var entity = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
         return entity is null ? null : _mapper.MapToDto(entity);

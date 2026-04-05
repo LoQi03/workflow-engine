@@ -24,6 +24,7 @@ public class UserMapper : BaseMapper<UserDto, User>
         FirstName = dto.FirstName ?? string.Empty,
         LastName = dto.LastName ?? string.Empty,
         Email = dto.Email ?? string.Empty,
+        PasswordHash = dto.Password ?? string.Empty,
         TenantId = dto.TenantId ?? 0
     };
 }

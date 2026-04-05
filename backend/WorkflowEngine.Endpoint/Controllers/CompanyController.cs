@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Abstraction.Dtos;
@@ -7,6 +8,7 @@ namespace WorkflowEngine.Endpoint.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class CompanyController(ICompanyService companyService) : ControllerBase
 {
     [HttpGet(Name = $"{nameof(CompanyController)}.{nameof(GetAll)}")]
