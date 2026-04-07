@@ -9,27 +9,48 @@ namespace WorkflowEngine.BusinessLogic.Services;
 public class UserService(
     IUserRepository repository,
     IPasswordHasher passwordHasher,
-    ITokenService tokenService) : BaseService<UserDto>(repository), IUserService
+    ITokenService tokenService,
+    IEnvironmentService environmentService) : BaseService<UserDto>(repository), IUserService
 {
-    public override Task<UserDto> CreateAsync(UserDto dto)
+    public override async Task<UserDto> CreateAsync(UserDto dto)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dto.Password);
         dto.Password = passwordHasher.Hash(dto.Password);
-        return base.CreateAsync(dto);
+        var tenant = await environmentService.GetCurrentTenantAsync();
+
+        if (tenant is null)
+        {
+            throw new InvalidOperationException("No tenant context found. Please set the tenant context before creating a user.");
+        }
+
+        dto.TenantId = tenant.Id;
+        return await base.CreateAsync(dto);
     }
 
-    public async Task<TokenResponseDto?> LoginAsync(LoginDto dto)
+    public async Task<TokenResponseDto?> LoginAsync(LoginDto loginDto)
     {
-        var passwordHash = await repository.GetPasswordHashByEmailAsync(dto.Email);
-
-        if (passwordHash is null || !passwordHasher.Verify(dto.Password, passwordHash))
+        if (!await environmentService.SetCurrentTenantAsync(loginDto.TenantName))
             return null;
 
-        var user = await repository.GetByEmailAsync(dto.Email);
+        var tenant = await environmentService.GetTenantByNameAsync(loginDto.TenantName);
+        if (tenant is null)
+            return null;
+
+        var passwordHash = await repository.GetPasswordHashByEmailAsync(loginDto.Email);
+
+        if (passwordHash is null || !passwordHasher.Verify(loginDto.Password, passwordHash))
+        {
+            return null;
+        }
+
+        var user = await repository.GetByEmailAsync(loginDto.Email);
+
         if (user is null)
+        {
             return null;
+        }
 
-        return await tokenService.GenerateTokensAsync(user);
+        return await tokenService.GenerateTokensAsync(user, tenant);
     }
 
     public async Task<TokenResponseDto?> RefreshTokenAsync(string refreshToken)

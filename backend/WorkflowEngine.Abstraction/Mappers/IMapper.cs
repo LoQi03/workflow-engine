@@ -1,5 +1,14 @@
 namespace WorkflowEngine.Abstraction.Mappers;
 
+/// <summary>
+/// Defines a contract for mapping between data transfer objects (DTOs) and entity types, supporting conversion and
+/// property application in both directions.
+/// </summary>
+/// <remarks>Implement this interface to provide custom mapping logic between DTOs and entities, enabling
+/// consistent transformation and update operations across application layers. Typical use cases include data
+/// persistence, API communication, and separation of domain and transport models.</remarks>
+/// <typeparam name="TDto">The type representing the data transfer object to map to and from.</typeparam>
+/// <typeparam name="TEntity">The type representing the entity to map to and from.</typeparam>
 public interface IMapper<TDto, TEntity>
 {
     /// <summary>
@@ -41,6 +50,15 @@ public interface IMapper<TDto, TEntity>
     /// <param name="dto">The data transfer object containing the values to apply. Cannot be null.</param>
     /// <param name="entity">The entity instance to which the values from the data transfer object will be applied. Cannot be null.</param>
     void ApplyToEntity(TDto dto, TEntity entity);
+
+    /// <summary>
+    /// Applies the values from the specified data transfer object to the given entity instance,
+    /// skipping properties whose names are in the ignored fields list.
+    /// </summary>
+    /// <param name="dto">The data transfer object containing the values to apply. Cannot be null.</param>
+    /// <param name="entity">The entity instance to which the values from the data transfer object will be applied. Cannot be null.</param>
+    /// <param name="ignoredFields">Property names to skip during the apply operation.</param>
+    void ApplyToEntity(TDto dto, TEntity entity, List<string> ignoredFields);
 
     /// <summary>
     /// Applies the values from the specified entity to the provided data transfer object (DTO).

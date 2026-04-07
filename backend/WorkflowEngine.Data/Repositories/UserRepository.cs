@@ -10,7 +10,7 @@ namespace WorkflowEngine.Data.Repositories;
 
 [RegisterDI(typeof(IUserRepository))]
 public class UserRepository(
-    WorkflowEngineDbContext context,
+    TenantDbContext context,
     IMapper<UserDto, User> mapper) : BaseRepository<User, UserDto>(context, mapper), IUserRepository
 {
     public async Task<UserDto?> GetByEmailAsync(string email)

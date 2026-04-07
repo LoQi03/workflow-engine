@@ -9,7 +9,7 @@ import WorkflowSelector from '@/pages/WorkflowSelector';
 import { useWorkflowStore } from '@/hooks/useWorkflowStore';
 import { toast } from 'sonner';
 
-const Index = () => {
+const WorkflowEditor = () => {
   const store = useWorkflowStore();
   const [showEditor, setShowEditor] = useState(false);
   const [workflowName, setWorkflowName] = useState('My Workflow');
@@ -126,4 +126,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default WorkflowEditor;

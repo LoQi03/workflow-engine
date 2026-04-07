@@ -8,7 +8,6 @@ public class Company : IBaseEntity, IRecordHistory
     public string Name { get; set; } = string.Empty;
 
     public int TenantId { get; set; }
-    public Tenant Tenant { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
     public int CreatedUserId { get; set; }

@@ -1,9 +1,11 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using WorkflowEngine.BusinessLogic.Extensions;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Endpoint.Controllers;
+using WorkflowEngine.Endpoint.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,20 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.AllowTrailingCommas = true;
     });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddSchemaTransformer((schema, context, ct) =>
+    {
+        if (schema.Type is { } type
+            && type.HasFlag(JsonSchemaType.Integer)
+            && type.HasFlag(JsonSchemaType.String))
+        {
+            schema.Type = JsonSchemaType.Integer;
+            schema.Pattern = null;
+        }
+        return Task.CompletedTask;
+    });
+});
 
 builder.Services.AddWorkflowData(builder.Configuration);
 builder.Services.AddWorkflowBusinessLogic(builder.Configuration);
@@ -59,6 +74,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+app.UseMiddleware<TenantMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

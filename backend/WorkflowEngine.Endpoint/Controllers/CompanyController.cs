@@ -22,7 +22,7 @@ public class CompanyController(ICompanyService companyService) : ControllerBase
     [HttpGet("{id}", Name = $"{nameof(CompanyController)}.{nameof(GetById)}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CompanyDto>> GetById(int id)
+    public async Task<ActionResult<CompanyDto>> GetById([FromRoute] int id)
     {
         var company = await companyService.GetByIdAsync(id);
         return company is null ? NotFound() : Ok(company);
@@ -39,7 +39,7 @@ public class CompanyController(ICompanyService companyService) : ControllerBase
     [HttpPut("{id}", Name = $"{nameof(CompanyController)}.{nameof(Update)}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CompanyDto>> Update(int id, [FromBody] CompanyDto dto)
+    public async Task<ActionResult<CompanyDto>> Update([FromRoute] int id, [FromBody] CompanyDto dto)
     {
         var updated = await companyService.UpdateAsync(id, dto);
         return updated is null ? NotFound() : Ok(updated);
@@ -48,7 +48,7 @@ public class CompanyController(ICompanyService companyService) : ControllerBase
     [HttpDelete("{id}", Name = $"{nameof(CompanyController)}.{nameof(Delete)}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete([FromRoute] int id)
     {
         var deleted = await companyService.DeleteAsync(id);
         return deleted ? NoContent() : NotFound();

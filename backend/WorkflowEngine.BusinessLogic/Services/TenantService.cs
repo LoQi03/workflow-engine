@@ -9,4 +9,9 @@ namespace WorkflowEngine.BusinessLogic.Services;
 public class TenantService(
     ITenantRepository repository) : BaseService<TenantDto>(repository), ITenantService
 {
+    public async Task<TenantDto?> GetByNameAsync(string tenantName)
+    {
+        var results = await QueryAsync(t => t.Name == tenantName);
+        return results.FirstOrDefault();
+    }
 }

@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using WorkflowEngine.Abstraction.Entities;
 using WorkflowEngine.Abstraction.Mappers;
 using WorkflowEngine.Abstraction.Repositories;
-using WorkflowEngine.Data.Contexts;
 
 namespace WorkflowEngine.Data.Repositories;
 
@@ -19,17 +19,17 @@ namespace WorkflowEngine.Data.Repositories;
 /// <param name="context">The database context used to access and manage entity data.</param>
 /// <param name="mapper">The mapper responsible for converting between DTOs and entities.</param>
 public class BaseRepository<TEntity, TDto>(
-    WorkflowEngineDbContext context,
+    DbContext context,
     IMapper<TDto, TEntity> mapper) : IBaseRepository<TDto>
     where TEntity : class, IBaseEntity
     where TDto : class
 {
     /// <summary>
-    /// Provides access to the database context used for workflow engine data operations.
+    /// Provides access to the database context used for data operations.
     /// </summary>
     /// <remarks>Intended for use by derived classes to interact with the underlying data store. The context
     /// should be properly disposed of according to the application's lifetime management strategy.</remarks>
-    protected readonly WorkflowEngineDbContext _context = context;
+    protected readonly DbContext _context = context;
 
     /// <summary>
     /// Provides access to the mapper used to convert between data transfer objects and entities.
@@ -41,10 +41,16 @@ public class BaseRepository<TEntity, TDto>(
     /// <summary>
     /// Represents the set of entities of type TEntity in the underlying database context.
     /// </summary>
-    /// <remarks>This field provides access to query and manipulate entities of type TEntity within the
-    /// database context. It is typically used by repository implementations to perform CRUD operations. The field is
-    /// initialized using the provided DbContext instance.</remarks>
-    protected readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
+    /// <remarks>This property provides access to query and manipulate entities of type TEntity within the
+    /// database context. It is typically used by repository implementations to perform CRUD operations. Access is
+    /// deferred until first use to allow the tenant context to be configured before EF Core initialization.</remarks>
+    protected DbSet<TEntity> _dbSet => context.Set<TEntity>();
+
+    /// <summary>
+    /// Gets the list of property names to ignore during update operations.
+    /// Override in derived classes to exclude specific properties.
+    /// </summary>
+    protected virtual List<string> IgnoredFields { get; } = [];
 
     /// <summary>
     /// Asynchronously retrieves all entities from the data source and maps them to their corresponding data transfer
@@ -68,6 +74,20 @@ public class BaseRepository<TEntity, TDto>(
     {
         var entity = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
         return entity is null ? null : _mapper.MapToDto(entity);
+    }
+
+    /// <summary>
+    /// Asynchronously retrieves all entities that match the specified predicate and maps them to their corresponding DTOs.
+    /// </summary>
+    /// <param name="predicate">An expression applied to DTOs to filter the results. The expression is translated
+    /// to an entity-level predicate so that filtering is performed at the database level.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an enumerable collection of DTOs
+    /// that satisfy the predicate. The collection is empty if no matching entities are found.</returns>
+    public virtual async Task<IEnumerable<TDto>> QueryAsync(Expression<Func<TDto, bool>> predicate)
+    {
+        var entityPredicate = ExpressionMapper<TDto, TEntity>.MapExpression(predicate);
+        var entities = await _dbSet.AsNoTracking().Where(entityPredicate).ToListAsync();
+        return _mapper.MapToDtos(entities);
     }
 
     /// <summary>
@@ -97,7 +117,7 @@ public class BaseRepository<TEntity, TDto>(
         if (entity is null)
             return null;
 
-        _mapper.ApplyToEntity(dto, entity);
+        _mapper.ApplyToEntity(dto, entity, IgnoredFields);
         await _context.SaveChangesAsync();
         return _mapper.MapToDto(entity);
     }

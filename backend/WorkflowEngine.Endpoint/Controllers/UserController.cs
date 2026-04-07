@@ -9,7 +9,7 @@ namespace WorkflowEngine.Endpoint.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class UserController(IUserService userService) : ControllerBase
+public class UserController(IUserService userService, IEnvironmentService environmentService) : ControllerBase
 {
     [HttpGet(Name = $"{nameof(UserController)}.{nameof(GetAll)}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -22,7 +22,7 @@ public class UserController(IUserService userService) : ControllerBase
     [HttpGet("{id}", Name = $"{nameof(UserController)}.{nameof(GetById)}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserDto>> GetById(int id)
+    public async Task<ActionResult<UserDto>> GetById([FromRoute] int id)
     {
         var user = await userService.GetByIdAsync(id);
         return user is null ? NotFound() : Ok(user);
@@ -33,8 +33,12 @@ public class UserController(IUserService userService) : ControllerBase
     [AllowAnonymous]
     [HttpPost(Name = $"{nameof(UserController)}.{nameof(Create)}")]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<UserDto>> Create([FromBody] UserDto dto)
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<UserDto>> Create([FromQuery] string tenantName, [FromBody] UserDto dto)
     {
+        if (!await environmentService.SetCurrentTenantAsync(tenantName))
+            return BadRequest($"Tenant '{tenantName}' not found.");
+
         var created = await userService.CreateAsync(dto);
         return CreatedAtRoute($"{nameof(UserController)}.{nameof(GetById)}", new { id = created.Id }, created);
     }
@@ -44,7 +48,7 @@ public class UserController(IUserService userService) : ControllerBase
     [HttpPut("{id}", Name = $"{nameof(UserController)}.{nameof(Update)}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UserDto dto)
+    public async Task<ActionResult<UserDto>> Update([FromRoute] int id, [FromBody] UserDto dto)
     {
         var updated = await userService.UpdateAsync(id, dto);
         return updated is null ? NotFound() : Ok(updated);
@@ -53,7 +57,7 @@ public class UserController(IUserService userService) : ControllerBase
     [HttpDelete("{id}", Name = $"{nameof(UserController)}.{nameof(Delete)}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete([FromRoute] int id)
     {
         var deleted = await userService.DeleteAsync(id);
         return deleted ? NoContent() : NotFound();

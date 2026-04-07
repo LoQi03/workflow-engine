@@ -15,16 +15,17 @@ namespace WorkflowEngine.BusinessLogic.Services;
 public class TokenService(
     JwtSettings jwtSettings,
     IRefreshTokenRepository refreshTokenRepository,
-    IUserRepository userRepository) : ITokenService
+    IUserRepository userRepository,
+    IEnvironmentService environmentService) : ITokenService
 {
-    public async Task<TokenResponseDto> GenerateTokensAsync(UserDto user)
+    public async Task<TokenResponseDto> GenerateTokensAsync(UserDto userDto, TenantDto tenantDto)
     {
         var expiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.AccessTokenExpirationMinutes);
-        var accessToken = GenerateAccessToken(user, expiresAt);
+        var accessToken = GenerateAccessToken(userDto, tenantDto.Id, expiresAt);
         var refreshToken = GenerateRefreshToken();
 
         var refreshTokenExpiresAt = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays);
-        await refreshTokenRepository.SaveAsync(user.Id, refreshToken, refreshTokenExpiresAt);
+        await refreshTokenRepository.SaveAsync(userDto.Id, tenantDto.Id, refreshToken, refreshTokenExpiresAt);
 
         return new TokenResponseDto
         {
@@ -43,11 +44,18 @@ public class TokenService(
 
         await refreshTokenRepository.RevokeAsync(refreshToken);
 
+        if (!await environmentService.SetCurrentTenantByIdAsync(tokenData.Value.TenantId))
+            return null;
+
         var user = await userRepository.GetByIdAsync(tokenData.Value.UserId);
         if (user is null)
             return null;
 
-        return await GenerateTokensAsync(user);
+        var tenant = await environmentService.GetTenantByIdAsync(tokenData.Value.TenantId);
+        if (tenant is null)
+            return null;
+
+        return await GenerateTokensAsync(user, tenant);
     }
 
     public async Task RevokeRefreshTokenAsync(string refreshToken)
@@ -55,7 +63,7 @@ public class TokenService(
         await refreshTokenRepository.RevokeAsync(refreshToken);
     }
 
-    private string GenerateAccessToken(UserDto user, DateTime expiresAt)
+    private string GenerateAccessToken(UserDto user, int tenantId, DateTime expiresAt)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -66,7 +74,8 @@ public class TokenService(
             new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName ?? string.Empty),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("tenant_id", tenantId.ToString())
         };
 
         var token = new JwtSecurityToken(

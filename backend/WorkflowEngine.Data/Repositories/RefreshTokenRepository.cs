@@ -9,12 +9,13 @@ namespace WorkflowEngine.Data.Repositories;
 [RegisterDI(typeof(IRefreshTokenRepository))]
 public class RefreshTokenRepository(WorkflowEngineDbContext context) : IRefreshTokenRepository
 {
-    public async Task SaveAsync(int userId, string token, DateTime expiresAt)
+    public async Task SaveAsync(int userId, int tenantId, string token, DateTime expiresAt)
     {
         var entity = new RefreshToken
         {
             Token = token,
             UserId = userId,
+            TenantId = tenantId,
             ExpiresAt = expiresAt,
             CreatedAt = DateTime.UtcNow
         };
@@ -23,7 +24,7 @@ public class RefreshTokenRepository(WorkflowEngineDbContext context) : IRefreshT
         await context.SaveChangesAsync();
     }
 
-    public async Task<(int UserId, DateTime ExpiresAt, bool IsRevoked)?> GetByTokenAsync(string token)
+    public async Task<(int UserId, int TenantId, DateTime ExpiresAt, bool IsRevoked)?> GetByTokenAsync(string token)
     {
         var entity = await context.RefreshTokens
             .AsNoTracking()
@@ -32,7 +33,7 @@ public class RefreshTokenRepository(WorkflowEngineDbContext context) : IRefreshT
         if (entity is null)
             return null;
 
-        return (entity.UserId, entity.ExpiresAt, entity.RevokedAt is not null);
+        return (entity.UserId, entity.TenantId, entity.ExpiresAt, entity.RevokedAt is not null);
     }
 
     public async Task RevokeAsync(string token)

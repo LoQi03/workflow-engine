@@ -4,5 +4,5 @@ public class TenantDto
 {
     public int Id { get; set; }
     public string? Name { get; set; }
-    public List<CompanyDto>? Companies { get; set; }
+    public string? ConnectionString { get; set; }
 }

@@ -41,6 +41,15 @@ public class BaseService<TDto>(IBaseRepository<TDto> repository) : IBaseService<
         => await _repository.GetByIdAsync(id);
 
     /// <summary>
+    /// Asynchronously retrieves all entities that match the specified predicate.
+    /// </summary>
+    /// <param name="predicate">An expression used to filter the results.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an enumerable collection of DTOs
+    /// that satisfy the predicate. The collection is empty if no matching entities are found.</returns>
+    public virtual async Task<IEnumerable<TDto>> QueryAsync(System.Linq.Expressions.Expression<Func<TDto, bool>> predicate)
+        => await _repository.QueryAsync(predicate);
+
+    /// <summary>
     /// Asynchronously creates a new entity in the data store using the specified data transfer object.
     /// </summary>
     /// <param name="dto">The data transfer object containing the values to use when creating the new entity. Cannot be null.</param>

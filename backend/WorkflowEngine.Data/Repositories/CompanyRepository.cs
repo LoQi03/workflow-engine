@@ -9,7 +9,7 @@ namespace WorkflowEngine.Data.Repositories;
 
 [RegisterDI(typeof(ICompanyRepository))]
 public class CompanyRepository(
-    WorkflowEngineDbContext context,
+    TenantDbContext context,
     IMapper<CompanyDto, Company> mapper) : BaseRepository<Company, CompanyDto>(context, mapper), ICompanyRepository
 {
 }
