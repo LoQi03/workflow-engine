@@ -194,6 +194,8 @@ export class WorkflowCanvasComponent {
     this.nodes.set(createInitialNodes());
     this.edges.set(createInitialEdges());
     this.workflowName.set('Untitled Workflow');
+    this.contextMenu.set(null);
+    this.workflowStore.clearActive();
     this.nodeIdCounter = 0;
     this.edgeIdCounter = 0;
     this.fitView();

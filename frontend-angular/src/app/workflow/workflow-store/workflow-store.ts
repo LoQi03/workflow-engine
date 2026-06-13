@@ -134,18 +134,28 @@ export class WorkflowStoreService {
     return wf;
   }
 
+  clearActive(): void {
+    this.activeId.set(null);
+    localStorage.removeItem(ACTIVE_KEY);
+  }
+
   remove(id: string): void {
     const next = this.workflows().filter((w) => w.id !== id);
     persistAll(next);
     this.workflows.set(next);
 
     if (this.activeId() === id) {
-      this.activeId.set(null);
-      localStorage.removeItem(ACTIVE_KEY);
+      this.clearActive();
     }
   }
 
   refresh(): void {
-    this.workflows.set(loadAll());
+    const next = loadAll();
+    this.workflows.set(next);
+
+    const active = this.activeId();
+    if (active !== null && !next.some((w) => w.id === active)) {
+      this.clearActive();
+    }
   }
 }
