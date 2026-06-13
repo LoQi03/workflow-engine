@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, effect, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, signal, viewChild } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideMaximize, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
-import { Connection, Edge, Node, Vflow, VflowComponent, createEdge, createEdges, createNode, createNodes } from 'ngx-vflow';
+import { Connection, Edge, Node, Vflow, VflowComponent, createEdge, createEdges, createNode, createNodes, isComponentNode } from 'ngx-vflow';
+import { NodePropertiesComponent } from '../node-properties/node-properties';
 import { NODE_TEMPLATE_DATA_TRANSFER_TYPE, NodePaletteComponent, isNodeTemplate } from '../node-palette/node-palette';
 import { WorkflowNodeComponent, WorkflowNodeData } from '../workflow-node/workflow-node';
 
@@ -27,7 +28,7 @@ function createInitialEdges(): Edge[] {
 @Component({
   selector: 'app-workflow-canvas',
   standalone: true,
-  imports: [Vflow, NgIcon, NodePaletteComponent],
+  imports: [Vflow, NgIcon, NodePaletteComponent, NodePropertiesComponent],
   providers: [provideIcons({ lucideZoomIn, lucideZoomOut, lucideMaximize })],
   templateUrl: './workflow-canvas.html',
   styles: ':host { display: block; width: 100%; height: 100vh; }',
@@ -39,6 +40,11 @@ function createInitialEdges(): Edge[] {
 export class WorkflowCanvasComponent {
   protected readonly nodes = signal<Node[]>(createInitialNodes());
   protected readonly edges = signal<Edge[]>(createInitialEdges());
+
+  protected readonly selectedNode = computed(() => {
+    const n = this.nodes().find((x) => x.selected?.());
+    return n && isComponentNode<WorkflowNodeData>(n) ? n : undefined;
+  });
 
   private readonly vflow = viewChild<VflowComponent>('vflow');
 
@@ -125,11 +131,16 @@ export class WorkflowCanvasComponent {
     this.vflow()?.fitView();
   }
 
+  protected onNodeDelete(id: string): void {
+    this.nodes.update((nodes) => nodes.filter((node) => node.id !== id));
+    this.edges.update((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
+  }
+
   protected onKeyDown(event: KeyboardEvent): void {
     if (event.key !== 'Delete' && event.key !== 'Backspace') return;
 
     const target = event.target as HTMLElement | null;
-    if (target?.closest('input, textarea, [contenteditable="true"]')) return;
+    if (target?.closest('input, textarea, button, [contenteditable="true"], [role="switch"], [role="listbox"], [role="option"]')) return;
 
     const deletedNodeIds = new Set(this.nodes().filter((node) => node.selected?.()).map((node) => node.id));
     const hasSelectedEdge = this.edges().some((edge) => edge.selected?.());

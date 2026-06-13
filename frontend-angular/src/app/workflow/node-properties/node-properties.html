@@ -1,0 +1,146 @@
+<div class="w-72 bg-sidebar border-l border-border flex flex-col h-full animate-in slide-in-from-right-4 duration-200">
+  <!-- Header -->
+  <div class="p-4 border-b border-border flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-2 h-2 rounded-full" [style.background-color]="accentColorSolid()"></div>
+      <h2 class="text-sm font-bold text-foreground font-heading">Properties</h2>
+    </div>
+    <button hlmBtn variant="ghost" size="icon" class="h-7 w-7 text-muted-foreground hover:text-foreground" aria-label="Close panel" (click)="close()">
+      <ng-icon name="lucideX" class="w-4 h-4" />
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="flex-1 overflow-y-auto p-4 space-y-5">
+    <!-- Node ID -->
+    <div class="px-2 py-1.5 rounded bg-muted">
+      <span class="text-[10px] text-muted-foreground font-mono">{{ node().id }}</span>
+    </div>
+
+    <!-- Label -->
+    <div class="space-y-1.5">
+      <label hlmLabel class="text-xs text-muted-foreground">Label</label>
+      <input hlmInput [value]="data().label" (input)="onLabelInput($event)" class="h-8 w-full text-sm bg-card border-border focus:border-primary" />
+    </div>
+
+    <!-- Description -->
+    <div class="space-y-1.5">
+      <label hlmLabel class="text-xs text-muted-foreground">Description</label>
+      <textarea
+        hlmTextarea
+        [value]="data().description || ''"
+        (input)="onDescriptionInput($event)"
+        class="w-full text-sm bg-card border-border focus:border-primary resize-none min-h-[60px]"
+        rows="2"
+      ></textarea>
+    </div>
+
+    <!-- Type-specific config -->
+    <div class="border-t border-border pt-4 space-y-4">
+      <h3 class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Configuration</h3>
+
+      @if (data().type === 'trigger') {
+        <div class="space-y-1.5">
+          <label hlmLabel class="text-xs text-muted-foreground">Method</label>
+          <hlm-select class="block w-full" [value]="data().method || 'POST'" (valueChange)="onMethodChange($event)">
+            <hlm-select-trigger class="h-8 w-full text-sm bg-card border-border">
+              <hlm-select-value />
+            </hlm-select-trigger>
+            <ng-template hlmSelectPortal>
+              <hlm-select-content>
+                <hlm-select-item value="GET">GET</hlm-select-item>
+                <hlm-select-item value="POST">POST</hlm-select-item>
+                <hlm-select-item value="PUT">PUT</hlm-select-item>
+                <hlm-select-item value="DELETE">DELETE</hlm-select-item>
+              </hlm-select-content>
+            </ng-template>
+          </hlm-select>
+        </div>
+        <div class="space-y-1.5">
+          <label hlmLabel class="text-xs text-muted-foreground">Endpoint</label>
+          <input
+            hlmInput
+            [value]="data().endpoint || '/api/webhook'"
+            (input)="onEndpointInput($event)"
+            class="h-8 w-full text-sm bg-card border-border font-mono text-xs"
+            placeholder="/api/webhook"
+          />
+        </div>
+      }
+
+      @if (data().type === 'action') {
+        <div class="space-y-1.5">
+          <label hlmLabel class="text-xs text-muted-foreground">Timeout (ms)</label>
+          <input
+            hlmInput
+            type="number"
+            [value]="data().timeout ?? 5000"
+            (input)="onTimeoutInput($event)"
+            class="h-8 w-full text-sm bg-card border-border font-mono"
+          />
+        </div>
+        <div class="flex items-center justify-between">
+          <label hlmLabel class="text-xs text-muted-foreground">Retry on failure</label>
+          <hlm-switch [checked]="data().retry || false" (checkedChange)="handleChange('retry', $event)" />
+        </div>
+        @if (data().retry) {
+          <div class="space-y-1.5">
+            <label hlmLabel class="text-xs text-muted-foreground">Max retries</label>
+            <input
+              hlmInput
+              type="number"
+              [value]="data().maxRetries ?? 3"
+              (input)="onMaxRetriesInput($event)"
+              class="h-8 w-full text-sm bg-card border-border font-mono"
+            />
+          </div>
+        }
+      }
+
+      @if (data().type === 'condition') {
+        <div class="space-y-1.5">
+          <label hlmLabel class="text-xs text-muted-foreground">Expression</label>
+          <textarea
+            hlmTextarea
+            [value]="data().expression || ''"
+            (input)="onExpressionInput($event)"
+            class="w-full text-xs bg-card border-border font-mono resize-none min-h-[70px]"
+            placeholder="data.status === 'valid'"
+            rows="3"
+          ></textarea>
+        </div>
+      }
+
+      @if (data().type === 'output') {
+        <div class="space-y-1.5">
+          <label hlmLabel class="text-xs text-muted-foreground">Status Code</label>
+          <input
+            hlmInput
+            type="number"
+            [value]="data().statusCode ?? 200"
+            (input)="onStatusCodeInput($event)"
+            class="h-8 w-full text-sm bg-card border-border font-mono"
+          />
+        </div>
+        <div class="space-y-1.5">
+          <label hlmLabel class="text-xs text-muted-foreground">Response Body</label>
+          <textarea
+            hlmTextarea
+            [value]="data().responseBody || ''"
+            (input)="onResponseBodyInput($event)"
+            class="w-full text-xs bg-card border-border font-mono resize-none min-h-[70px]"
+            placeholder='{ "success": true }'
+            rows="3"
+          ></textarea>
+        </div>
+      }
+    </div>
+
+    <!-- Danger zone -->
+    <div class="border-t border-border pt-4">
+      <button hlmBtn variant="ghost" size="sm" class="w-full text-destructive hover:text-destructive hover:bg-destructive/10 text-xs" (click)="deleteNode()">
+        Delete Node
+      </button>
+    </div>
+  </div>
+</div>

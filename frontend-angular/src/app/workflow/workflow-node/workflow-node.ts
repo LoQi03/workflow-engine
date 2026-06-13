@@ -18,6 +18,18 @@ export interface WorkflowNodeData {
   type: 'trigger' | 'action' | 'condition' | 'output';
   icon?: string;
   description?: string;
+  // trigger
+  method?: string;
+  endpoint?: string;
+  // action
+  timeout?: number;
+  retry?: boolean;
+  maxRetries?: number;
+  // condition
+  expression?: string;
+  // output
+  statusCode?: number;
+  responseBody?: string;
 }
 
 const iconMap: Record<string, string> = {

@@ -41,4 +41,8 @@
       </button>
     </div>
   </div>
+
+  @if (selectedNode(); as node) {
+    <app-node-properties [node]="node" (deleted)="onNodeDelete($event)" />
+  }
 </div>
