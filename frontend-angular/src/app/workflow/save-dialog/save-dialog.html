@@ -1,0 +1,48 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+  <div class="bg-card border border-border rounded-lg shadow-2xl shadow-black/50 w-[380px] animate-in fade-in zoom-in-95 duration-150">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+      <div class="flex items-center gap-2">
+        <ng-icon name="lucideSave" class="w-4 h-4 text-primary" />
+        <h2 class="text-sm font-bold font-heading text-foreground">Save Workflow</h2>
+      </div>
+      <button
+        type="button"
+        class="flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground"
+        (click)="closed.emit()"
+      >
+        <ng-icon name="lucideX" class="w-4 h-4" />
+      </button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div class="space-y-1.5">
+        <label class="text-xs text-muted-foreground">Workflow Name</label>
+        <input
+          type="text"
+          [value]="name()"
+          (input)="name.set($any($event.target).value)"
+          class="h-9 w-full text-sm rounded-md border border-input bg-background px-3 placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          placeholder="My Workflow"
+          autofocus
+          (keydown.enter)="name().trim() && onSave()"
+        />
+      </div>
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          class="h-8 px-3 text-xs rounded-md text-foreground hover:bg-accent"
+          (click)="closed.emit()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="h-8 px-3 flex items-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 font-heading text-xs font-semibold disabled:opacity-50 disabled:pointer-events-none"
+          [disabled]="!name().trim()"
+          (click)="onSave()"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

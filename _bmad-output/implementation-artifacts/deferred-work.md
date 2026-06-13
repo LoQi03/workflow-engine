@@ -125,6 +125,16 @@ Recreate `frontend/src/components/workflow/*` (~1,156 lines across 10 files) and
       existing filters, so not user-visible, but stale). C4b-3 should clear `contextMenu` in
       `onNewWorkflow` and in the new Load path (`reseedCounters`) for consistency.
 
+    - **C4b-2 review item** (deferred 2026-06-13): `onNewWorkflow` also doesn't reset
+      `workflowStore.activeId()`. Now that `onSaveConfirm` passes `activeId() ?? undefined`
+      as `existingId`, clicking New Workflow then Save overwrites the previously-active
+      saved entry (renaming/replacing it) instead of creating a new one — both
+      `nodes`/`edges` and the stored entry's identity are lost. React's `WorkflowEditor.tsx`
+      has the same gap (`handleNew` doesn't clear `store.activeId`). C4b-3 should reset
+      `activeId` in `onNewWorkflow` (e.g. `this.workflowStore.activeId.set(null)`, mirroring
+      the `contextMenu` cleanup above) alongside its `activeId` reconciliation work for the
+      "Active" badge and Load path.
+
 ### Goal D — Remaining pages, routing, tenant/auth flow
 Recreate `frontend/src/pages/TenantSelector.tsx`, `WorkflowSelector.tsx`, `NotFound.tsx`,
 top-level navigation (`NavLink`), and the tenant-selection/auth flow in Angular routing.

@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, effect, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideMaximize, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
 import { ComponentNodeEvent, Connection, Edge, Node, Vflow, VflowComponent, createEdge, createEdges, createNode, createNodes, isComponentNode } from 'ngx-vflow';
 import { ContextMenuComponent } from '../context-menu/context-menu';
 import { NodePropertiesComponent } from '../node-properties/node-properties';
 import { NODE_TEMPLATE_DATA_TRANSFER_TYPE, NodePaletteComponent, isNodeTemplate } from '../node-palette/node-palette';
+import { SaveDialogComponent } from '../save-dialog/save-dialog';
 import { TopBarComponent } from '../top-bar/top-bar';
 import { WorkflowNodeComponent, WorkflowNodeData } from '../workflow-node/workflow-node';
+import { WorkflowStoreService, toSavedEdges, toSavedNodes } from '../workflow-store/workflow-store';
 
 function createInitialNodes(): Node[] {
   return createNodes<WorkflowNodeData>([
@@ -30,7 +32,7 @@ function createInitialEdges(): Edge[] {
 @Component({
   selector: 'app-workflow-canvas',
   standalone: true,
-  imports: [Vflow, NgIcon, NodePaletteComponent, NodePropertiesComponent, ContextMenuComponent, TopBarComponent],
+  imports: [Vflow, NgIcon, NodePaletteComponent, NodePropertiesComponent, ContextMenuComponent, TopBarComponent, SaveDialogComponent],
   providers: [provideIcons({ lucideZoomIn, lucideZoomOut, lucideMaximize })],
   templateUrl: './workflow-canvas.html',
   styles: ':host { display: block; width: 100%; height: 100vh; }',
@@ -40,9 +42,12 @@ function createInitialEdges(): Edge[] {
   },
 })
 export class WorkflowCanvasComponent {
+  private readonly workflowStore = inject(WorkflowStoreService);
+
   protected readonly nodes = signal<Node[]>(createInitialNodes());
   protected readonly edges = signal<Edge[]>(createInitialEdges());
   protected readonly workflowName = signal('My Workflow');
+  protected readonly showSaveDialog = signal(false);
 
   protected readonly selectedNode = computed(() => {
     const n = this.nodes().find((x) => x.selected?.());
@@ -138,6 +143,12 @@ export class WorkflowCanvasComponent {
 
   protected fitView(): void {
     this.vflow()?.fitView();
+  }
+
+  protected onSaveConfirm(name: string): void {
+    this.workflowStore.save(name, toSavedNodes(this.nodes()), toSavedEdges(this.edges()), this.workflowStore.activeId() ?? undefined);
+    this.workflowName.set(name);
+    this.showSaveDialog.set(false);
   }
 
   protected onNewWorkflow(): void {
