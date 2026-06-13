@@ -1,0 +1,63 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+  <div class="bg-card border border-border rounded-lg shadow-2xl shadow-black/50 w-[480px] max-h-[70vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-border">
+      <div class="flex items-center gap-2">
+        <ng-icon name="lucideFolderOpen" class="w-4 h-4 text-primary" />
+        <h2 class="text-sm font-bold font-heading text-foreground">Saved Workflows</h2>
+      </div>
+      <button
+        type="button"
+        class="flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground"
+        (click)="closed.emit()"
+      >
+        <ng-icon name="lucideX" class="w-4 h-4" />
+      </button>
+    </div>
+
+    <!-- List -->
+    <div class="flex-1 overflow-y-auto p-3">
+      @if (workflows().length === 0) {
+        <div class="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <ng-icon name="lucideFileText" class="w-10 h-10 mb-3 opacity-40" />
+          <p class="text-sm">No saved workflows yet</p>
+          <p class="text-xs mt-1">Save your current workflow to see it here</p>
+        </div>
+      } @else {
+        <div class="space-y-1.5">
+          @for (wf of workflows(); track wf.id) {
+            <div
+              class="flex items-center justify-between px-3 py-2.5 rounded-md border transition-colors cursor-pointer group
+                {{ wf.id === activeId() ? 'border-primary/40 bg-primary/5' : 'border-transparent hover:bg-muted/50' }}"
+              (click)="load.emit(wf.id)"
+            >
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <p class="text-sm font-medium text-foreground truncate">{{ wf.name }}</p>
+                  @if (wf.id === activeId()) {
+                    <span class="text-[9px] font-semibold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                      Active
+                    </span>
+                  }
+                </div>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <ng-icon name="lucideClock" class="w-3 h-3 text-muted-foreground/60" />
+                  <span class="text-[10px] text-muted-foreground">{{ formatTimestamp(wf.updatedAt) }}</span>
+                  <span class="text-[10px] text-muted-foreground/50">·</span>
+                  <span class="text-[10px] text-muted-foreground">{{ wf.nodes.length }} nodes</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                (click)="$event.stopPropagation(); deleteWorkflow.emit(wf.id)"
+              >
+                <ng-icon name="lucideTrash2" class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

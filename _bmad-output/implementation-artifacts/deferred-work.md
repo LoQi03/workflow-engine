@@ -135,6 +135,20 @@ Recreate `frontend/src/components/workflow/*` (~1,156 lines across 10 files) and
       the `contextMenu` cleanup above) alongside its `activeId` reconciliation work for the
       "Active" badge and Load path.
 
+    - **C4b-3 follow-up — New/Refresh state reconciliation** (deferred 2026-06-13, split
+      from `spec-angular-workflow-manager.md` for token budget): resolve the C4b-1 review
+      item (`onNewWorkflow` doesn't clear `contextMenu`) and the C4b-2 review item
+      (`onNewWorkflow` doesn't reset `workflowStore.activeId()`) by adding
+      `this.contextMenu.set(null)` and `this.workflowStore.activeId.set(null)` to
+      `onNewWorkflow`. Also resolve the remaining C4a review item — `activeId`
+      reconciliation against `workflows()` — by having `WorkflowStoreService.refresh()`
+      clear `activeId`/`ACTIVE_KEY` when the active id is no longer present in
+      `workflows()`. Decide (likely no code) whether `SavedWorkflow.nodes`/`edges` need
+      validation before `fromSavedNodes`/`fromSavedEdges` — probably "accept the gap",
+      matching `loadAll()` and React's `useWorkflowStore.ts`. Depends on C4b-3 (needs
+      `WorkflowManagerComponent`'s Active badge to exist so the reconciliation is
+      observable).
+
 ### Goal D — Remaining pages, routing, tenant/auth flow
 Recreate `frontend/src/pages/TenantSelector.tsx`, `WorkflowSelector.tsx`, `NotFound.tsx`,
 top-level navigation (`NavLink`), and the tenant-selection/auth flow in Angular routing.
@@ -298,3 +312,26 @@ point to an id no longer present in `workflows()`. This mirrors `useWorkflowStor
 identical behavior (no reconciliation there either). When C4b builds the "Active" badge /
 restores the last-opened workflow (`WorkflowManager`/`TopBar`), decide whether to reconcile a
 stale `activeId` against `workflows()` (e.g. on `refresh()` or at startup).
+
+## From: C4b-3 implementation review (2026-06-13)
+
+Surfaced during step-04 review of `spec-angular-workflow-manager.md` (Workflow Manager
+Open/Load/Delete port). Not blocking for C4b-3; relevant to later goals.
+
+### Loading a workflow discards unsaved canvas edits without warning
+`WorkflowCanvasComponent.onLoadWorkflow` (`workflow-canvas.ts`) immediately overwrites
+`nodes`/`edges`/`workflowName` with the selected saved workflow's data, with no check for
+unsaved changes on the current canvas. This mirrors `onNewWorkflow`'s identical gap (no
+"discard unsaved changes?" prompt) and React's `WorkflowEditor.tsx` `handleLoad`/`handleNew`,
+so it is not a regression introduced by C4b-3 — but Open/Load is now a second action with this
+gap. Once Goal B's toast/notification system or a dirty-tracking mechanism exists, consider a
+confirmation prompt before New/Load when the canvas has unsaved changes.
+
+### WorkflowManager's modal and list rows extend the existing accessibility-pass gap
+`WorkflowManagerComponent`'s overlay (`workflow-manager.html`) has no `role="dialog"`/
+`aria-modal`, no Escape-to-close, and no focus trap; its close button (`X`) has no
+`aria-label`; and each workflow row is a plain `<div>` with `(click)="load.emit(...)"` and no
+`role="button"`/`tabindex`/keyboard activation — the same class of gap already tracked for
+C3a/C3b/C3d's panels and context-menu rows. This mirrors `WorkflowManager.tsx`, so it is not a
+regression introduced by C4b-3. Widen the planned accessibility pass (see C3a's review note)
+to also cover `WorkflowManagerComponent`'s dialog semantics and row interactions.

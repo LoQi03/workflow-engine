@@ -7,8 +7,9 @@ import { NodePropertiesComponent } from '../node-properties/node-properties';
 import { NODE_TEMPLATE_DATA_TRANSFER_TYPE, NodePaletteComponent, isNodeTemplate } from '../node-palette/node-palette';
 import { SaveDialogComponent } from '../save-dialog/save-dialog';
 import { TopBarComponent } from '../top-bar/top-bar';
+import { WorkflowManagerComponent } from '../workflow-manager/workflow-manager';
 import { WorkflowNodeComponent, WorkflowNodeData } from '../workflow-node/workflow-node';
-import { WorkflowStoreService, toSavedEdges, toSavedNodes } from '../workflow-store/workflow-store';
+import { WorkflowStoreService, fromSavedEdges, fromSavedNodes, toSavedEdges, toSavedNodes } from '../workflow-store/workflow-store';
 
 function createInitialNodes(): Node[] {
   return createNodes<WorkflowNodeData>([
@@ -32,7 +33,7 @@ function createInitialEdges(): Edge[] {
 @Component({
   selector: 'app-workflow-canvas',
   standalone: true,
-  imports: [Vflow, NgIcon, NodePaletteComponent, NodePropertiesComponent, ContextMenuComponent, TopBarComponent, SaveDialogComponent],
+  imports: [Vflow, NgIcon, NodePaletteComponent, NodePropertiesComponent, ContextMenuComponent, TopBarComponent, SaveDialogComponent, WorkflowManagerComponent],
   providers: [provideIcons({ lucideZoomIn, lucideZoomOut, lucideMaximize })],
   templateUrl: './workflow-canvas.html',
   styles: ':host { display: block; width: 100%; height: 100vh; }',
@@ -42,12 +43,13 @@ function createInitialEdges(): Edge[] {
   },
 })
 export class WorkflowCanvasComponent {
-  private readonly workflowStore = inject(WorkflowStoreService);
+  protected readonly workflowStore = inject(WorkflowStoreService);
 
   protected readonly nodes = signal<Node[]>(createInitialNodes());
   protected readonly edges = signal<Edge[]>(createInitialEdges());
   protected readonly workflowName = signal('My Workflow');
   protected readonly showSaveDialog = signal(false);
+  protected readonly showManager = signal(false);
 
   protected readonly selectedNode = computed(() => {
     const n = this.nodes().find((x) => x.selected?.());
@@ -149,6 +151,43 @@ export class WorkflowCanvasComponent {
     this.workflowStore.save(name, toSavedNodes(this.nodes()), toSavedEdges(this.edges()), this.workflowStore.activeId() ?? undefined);
     this.workflowName.set(name);
     this.showSaveDialog.set(false);
+  }
+
+  protected onOpenManager(): void {
+    this.workflowStore.refresh();
+    this.showManager.set(true);
+  }
+
+  protected onLoadWorkflow(id: string): void {
+    const wf = this.workflowStore.load(id);
+    if (!wf) return;
+
+    this.nodes.set(fromSavedNodes(wf.nodes));
+    this.edges.set(fromSavedEdges(wf.edges));
+    this.workflowName.set(wf.name);
+    this.contextMenu.set(null);
+    this.reseedCounters();
+    this.showManager.set(false);
+    this.fitView();
+  }
+
+  protected onDeleteWorkflow(id: string): void {
+    this.workflowStore.remove(id);
+    this.workflowStore.refresh();
+  }
+
+  private reseedCounters(): void {
+    const nodeMatches = this.nodes()
+      .map((node) => /^node-(\d+)$/.exec(node.id))
+      .filter((match): match is RegExpExecArray => match !== null)
+      .map((match) => Number(match[1]));
+    this.nodeIdCounter = Math.max(-1, ...nodeMatches) + 1;
+
+    const edgeMatches = this.edges()
+      .map((edge) => /^e-.+-(\d+)$/.exec(edge.id))
+      .filter((match): match is RegExpExecArray => match !== null)
+      .map((match) => Number(match[1]));
+    this.edgeIdCounter = Math.max(-1, ...edgeMatches) + 1;
   }
 
   protected onNewWorkflow(): void {

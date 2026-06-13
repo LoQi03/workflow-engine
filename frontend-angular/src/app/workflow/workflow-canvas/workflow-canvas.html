@@ -1,5 +1,5 @@
 <div class="h-full w-full flex flex-col overflow-hidden">
-  <app-top-bar [workflowName]="workflowName()" (newWorkflow)="onNewWorkflow()" (save)="showSaveDialog.set(true)" />
+  <app-top-bar [workflowName]="workflowName()" (newWorkflow)="onNewWorkflow()" (save)="showSaveDialog.set(true)" (openManager)="onOpenManager()" />
 
   <div class="flex flex-1 overflow-hidden">
     <app-node-palette />
@@ -65,5 +65,15 @@
 
   @if (showSaveDialog()) {
     <app-save-dialog [defaultName]="workflowName()" (save)="onSaveConfirm($event)" (closed)="showSaveDialog.set(false)" />
+  }
+
+  @if (showManager()) {
+    <app-workflow-manager
+      [workflows]="workflowStore.workflows()"
+      [activeId]="workflowStore.activeId()"
+      (load)="onLoadWorkflow($event)"
+      (deleteWorkflow)="onDeleteWorkflow($event)"
+      (closed)="showManager.set(false)"
+    />
   }
 </div>
