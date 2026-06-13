@@ -1,0 +1,22 @@
+<div [class]="cardClass()" [style.border-color]="borderColor()">
+  <div class="absolute top-0 left-3 right-3 h-[2px] rounded-b" [style.background-color]="accentColorSolid()"></div>
+
+  <div class="flex items-center gap-2.5 mb-1">
+    <div class="flex items-center justify-center w-7 h-7 rounded-md" [style.background-color]="accentColorSoft()">
+      <ng-icon [name]="icon()" class="w-4 h-4" [style.color]="accentColorSolid()" />
+    </div>
+    <span class="text-sm font-semibold text-foreground truncate font-heading">{{ data()?.label }}</span>
+  </div>
+
+  @if (data()?.description) {
+    <p class="text-xs text-muted-foreground mt-1 leading-relaxed">{{ data()?.description }}</p>
+  }
+
+  @if (data()?.type !== 'trigger') {
+    <handle position="top" type="target" />
+  }
+  <handle position="bottom" type="source" />
+  @if (data()?.type === 'condition') {
+    <handle position="right" type="source" id="false" />
+  }
+</div>

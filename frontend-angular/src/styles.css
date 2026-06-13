@@ -40,6 +40,12 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+
+  --canvas-grid: 228 10% 12%;
+  --node-trigger: 45 90% 55%;
+  --node-action: 200 80% 55%;
+  --node-condition: 265 80% 60%;
+  --node-output: 160 84% 44%;
 }
 
 :root.dark {
@@ -71,6 +77,12 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
+
+  --canvas-grid: 228 10% 12%;
+  --node-trigger: 45 90% 55%;
+  --node-action: 200 80% 55%;
+  --node-condition: 265 80% 60%;
+  --node-output: 160 84% 44%;
 }
 
 @layer base {
