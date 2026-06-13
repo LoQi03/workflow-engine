@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, effect, signal, viewChild } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideMaximize, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
-import { Connection, Edge, Node, Vflow, VflowComponent, createEdge, createEdges, createNodes } from 'ngx-vflow';
+import { Connection, Edge, Node, Vflow, VflowComponent, createEdge, createEdges, createNode, createNodes } from 'ngx-vflow';
+import { NODE_TEMPLATE_DATA_TRANSFER_TYPE, NodePaletteComponent, isNodeTemplate } from '../node-palette/node-palette';
 import { WorkflowNodeComponent, WorkflowNodeData } from '../workflow-node/workflow-node';
 
 function createInitialNodes(): Node[] {
@@ -26,7 +27,7 @@ function createInitialEdges(): Edge[] {
 @Component({
   selector: 'app-workflow-canvas',
   standalone: true,
-  imports: [Vflow, NgIcon],
+  imports: [Vflow, NgIcon, NodePaletteComponent],
   providers: [provideIcons({ lucideZoomIn, lucideZoomOut, lucideMaximize })],
   templateUrl: './workflow-canvas.html',
   styles: ':host { display: block; width: 100%; height: 100vh; }',
@@ -43,6 +44,7 @@ export class WorkflowCanvasComponent {
 
   private hasFitView = false;
   private edgeIdCounter = 0;
+  private nodeIdCounter = 0;
 
   constructor() {
     effect(() => {
@@ -66,6 +68,45 @@ export class WorkflowCanvasComponent {
     const id = `e-${connection.source}-${connection.target}-${this.edgeIdCounter++}`;
     const edge = createEdge({ ...connection, id, curve: 'smooth-step' });
     this.edges.update((edges) => [...edges, edge]);
+  }
+
+  protected onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  protected onDrop(event: DragEvent): void {
+    event.preventDefault();
+
+    const payload = event.dataTransfer?.getData(NODE_TEMPLATE_DATA_TRANSFER_TYPE);
+    if (!payload) return;
+
+    let template: unknown;
+    try {
+      template = JSON.parse(payload);
+    } catch {
+      return;
+    }
+    if (!isNodeTemplate(template)) return;
+
+    const vflow = this.vflow();
+    if (!vflow) return;
+
+    const point = vflow.documentPointToFlowPoint({ x: event.clientX, y: event.clientY });
+    const node = createNode<WorkflowNodeData>({
+      id: `node-${this.nodeIdCounter++}`,
+      point,
+      type: WorkflowNodeComponent,
+      data: {
+        label: template.label,
+        type: template.category,
+        icon: template.icon,
+        description: template.description,
+      },
+    });
+    this.nodes.update((nodes) => [...nodes, node]);
   }
 
   protected zoomIn(): void {

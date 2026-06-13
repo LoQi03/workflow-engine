@@ -105,3 +105,27 @@ inputs are ever wired up (not used by C1).
 Same situation as `/ui-showcase` (see Goal B review note above): added purely "for
 verification" per the C1 spec. Goal D should give it a permanent home behind the same
 guard/layout as other pages, or remove it once C4's `WorkflowEditor` page supersedes it.
+
+## From: C2 implementation review (2026-06-13)
+
+Surfaced during step-04 review of `spec-angular-workflow-node-palette.md` (node palette &
+drag-to-add port). Not blocking for C2; relevant to later goals.
+
+### `nodeIdCounter` not coordinated with persisted node IDs
+`WorkflowCanvasComponent.onDrop` (`workflow-canvas.ts`) generates new node IDs as
+`node-${counter}` from an in-memory counter that resets on reload — the same pattern as
+C1's already-deferred `edgeIdCounter` issue. When C4 ports `useWorkflowStore` (persistence),
+ensure new-node ID generation can't collide with previously-saved node IDs — including the
+hardcoded `'1'`..`'5'` demo node IDs — across reloads. Address alongside the edge-ID
+generation item above; both likely want the same fix (e.g. a single monotonically
+increasing ID source seeded from the max persisted ID).
+
+### Node palette drag items have no keyboard-accessible alternative
+`NodePaletteComponent`'s template rows are plain `draggable="true"` divs with no `role`,
+`tabindex`, or keyboard-triggered "add to canvas" action — a user who cannot perform HTML5
+drag-and-drop (keyboard-only or screen-reader users) has no way to add nodes. This mirrors
+`frontend/src/components/workflow/NodePalette.tsx`, which has the same gap, so it is not a
+regression introduced by C2 — but it's now present in two places. When C3/C4 round out the
+editor's interaction model, consider a click/keyboard "add node" affordance (e.g. click a
+palette item to add it at a default position, or near the current viewport center) as a
+fallback to drag-and-drop.
