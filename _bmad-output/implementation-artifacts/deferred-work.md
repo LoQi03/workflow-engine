@@ -74,11 +74,27 @@ Recreate `frontend/src/components/workflow/*` (~1,156 lines across 10 files) and
     `If / Else`/`Response`). Depends on C3b's `ContextMenuComponent` and
     `contextMenu` state shape.
 
-- **C4 — Workflow persistence & chrome**: port `useWorkflowStore.ts` (87 lines,
-  plain hook + localStorage despite the name — NOT zustand; keys
-  `flowcraft-workflows` / `flowcraft-active-workflow`) to an Angular service, plus
-  `SaveDialog.tsx` (59), `WorkflowManager.tsx` (85), `TopBar.tsx` (63), and the
-  `WorkflowEditor.tsx` (129) page wiring it all together. Depends on C1-C3.
+- **C4 — Workflow persistence & chrome** (split 2026-06-13 into C4a/C4b): port
+  `useWorkflowStore.ts` (87 lines, plain hook + localStorage despite the name — NOT
+  zustand; keys `flowcraft-workflows` / `flowcraft-active-workflow`) to an Angular
+  service, plus `SaveDialog.tsx` (59), `WorkflowManager.tsx` (85), `TopBar.tsx` (63), and
+  the `WorkflowEditor.tsx` (129) page wiring it all together. Depends on C1-C3.
+
+  - **C4a — Workflow persistence service** (NOW IN PROGRESS): port `useWorkflowStore.ts`
+    to a new injectable `WorkflowStoreService` (signals + localStorage, same
+    `flowcraft-workflows`/`flowcraft-active-workflow` keys, `SavedWorkflow` interface,
+    `save`/`load`/`remove`/`refresh` API + `workflows`/`activeId` signals). No UI changes
+    — standalone, mergeable on its own; gates C4b.
+
+  - **C4b — Editor chrome (TopBar + Save + Workflow Manager)** (deferred 2026-06-13,
+    split from C4 for token budget — same reasoning as C3d): port `TopBarComponent`
+    (title, New/Open/Save/Run buttons; Undo/Redo/Settings remain visual-only, matching
+    React), `SaveDialogComponent` (name + save modal), and `WorkflowManagerComponent`
+    (list/load/delete saved workflows), wired into `/workflow-canvas` via C4a's
+    `WorkflowStoreService`. "New Workflow" resets the canvas to a blank/default state.
+    `WorkflowEditor.tsx`'s `WorkflowSelector` landing-page branch is NOT ported here —
+    `/workflow-canvas` keeps always showing the editor (as today); `WorkflowSelector`
+    remains Goal D's responsibility. Depends on C4a.
 
 ### Goal D — Remaining pages, routing, tenant/auth flow
 Recreate `frontend/src/pages/TenantSelector.tsx`, `WorkflowSelector.tsx`, `NotFound.tsx`,
@@ -219,3 +235,27 @@ The accessibility note above already flagged C3b's Duplicate/Delete Node rows (p
 canvas-branch rows (header + Trigger/Action/Condition/Output) are built the same way and have
 the same gap. No new tracking item needed — just widen the scope of that planned pass to
 cover all six interactive rows in `context-menu.html` (2 node-branch + 4 canvas-branch).
+
+## From: C4a implementation review (2026-06-13)
+
+Surfaced during step-04 review of `spec-angular-workflow-store-service.md` (workflow
+persistence service port). Not blocking for C4a; relevant to C4b.
+
+### `load()`'s `SavedWorkflow.nodes`/`edges` aren't validated before reaching `fromSavedNodes`/`fromSavedEdges`
+`WorkflowStoreService.load(id)` returns whatever shape is stored under `flowcraft-workflows`
+for that `id` — if `localStorage` was hand-edited or corrupted (e.g. `nodes`/`edges` missing or
+containing malformed entries), `fromSavedNodes`/`fromSavedEdges` (`workflow-store.ts`) will
+throw inside `.map()` when C4b calls them after `load()`. This mirrors `loadAll()`'s existing
+"trust the JSON" approach (itself a verbatim port of `useWorkflowStore.ts`, which has the same
+gap). When C4b wires `load()` into the canvas's "Open" flow, decide whether to validate/guard
+`SavedWorkflow.nodes`/`edges` shape before calling the conversion helpers, or accept that
+hand-edited localStorage can break Open (as it already can in the React app).
+
+### `activeId` isn't reconciled against `workflows` on `refresh()` or service construction
+`WorkflowStoreService.activeId` is set from `localStorage.getItem(ACTIVE_KEY)` at construction
+and updated by `save()`/`load()`/`remove()`, but `refresh()` only re-syncs `workflows` — if the
+active workflow was deleted (e.g. by another tab, or hand-edited localStorage), `activeId` can
+point to an id no longer present in `workflows()`. This mirrors `useWorkflowStore.ts`'s
+identical behavior (no reconciliation there either). When C4b builds the "Active" badge /
+restores the last-opened workflow (`WorkflowManager`/`TopBar`), decide whether to reconcile a
+stale `activeId` against `workflows()` (e.g. on `refresh()` or at startup).
