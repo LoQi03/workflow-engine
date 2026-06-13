@@ -1,0 +1,21 @@
+<div
+  class="fixed z-[1000] bg-popover border border-border rounded-lg shadow-xl shadow-black/40 p-1 min-w-[170px] animate-in fade-in zoom-in-95 duration-100"
+  [style.left.px]="left()"
+  [style.top.px]="top()"
+>
+  <div
+    class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-foreground"
+    (click)="duplicateNode.emit()"
+  >
+    <ng-icon name="lucideCopy" class="w-3.5 h-3.5 text-muted-foreground" />
+    Duplicate
+  </div>
+  <div class="h-px bg-border my-1"></div>
+  <div
+    class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-destructive"
+    (click)="deleteNode.emit()"
+  >
+    <ng-icon name="lucideTrash2" class="w-3.5 h-3.5" />
+    Delete Node
+  </div>
+</div>

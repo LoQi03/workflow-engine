@@ -41,12 +41,38 @@ Recreate `frontend/src/components/workflow/*` (~1,156 lines across 10 files) and
     Depends on C1's selection model and node data shape. Establishes the
     `updateNode`/`deleteNode` API that C3b's context menu will reuse.
 
-  - **C3b — Context menu**: port `ContextMenu.tsx` (81 lines, right-click
-    node/edge/canvas actions: duplicate node, delete node/edge, add node by
-    category). Requires investigating `ngx-vflow`'s right-click/context-menu event
-    API (not yet used by C1/C2). Depends on C3a's `updateNode`/`deleteNode` API for
-    its Duplicate/Delete actions, and on C2's node-template data for its
-    canvas-context "Add Node" submenu.
+  - **C3b — Context menu (node)** (NOW IN PROGRESS, scope narrowed again
+    2026-06-13): port only the node-right-click (Duplicate/Delete Node) branch of
+    `ContextMenu.tsx` (81 lines). New `ContextMenuComponent` (shared
+    positioning/close-on-outside-click infrastructure, `node` branch only for now)
+    + a new `contextMenuRequested` output on `WorkflowNodeComponent` (host
+    `(contextmenu)`) bubbled through `<vflow>`'s experimental `(componentNodeEvent)`;
+    `onNodeDuplicate` ports `WorkflowCanvas.tsx`'s `duplicateNode`. Depends on C3a's
+    `onNodeDelete`. The canvas "Add Node" branch is deferred — see C3d below. (The
+    edge branch was already deferred as C3c.)
+
+  - **C3c — Edge context menu (Delete Connection)** (deferred 2026-06-13,
+    surfaced during C3b investigation): `ngx-vflow`'s default-type edges render as
+    bare SVG `<path>` elements with no `id`/data attribute and no per-edge
+    right-click/event API — only a `(click)` handler for selection
+    (`EdgeComponent` template, `g[edge]`). Supporting a per-edge context menu would
+    require switching edges from `type: 'default'` to `type: 'template'` (a custom
+    `<ng-template edge>` reimplementing path/marker/selection rendering ourselves) —
+    a much larger, regression-risky rewrite of C1's edge rendering for one menu
+    item. Deferred; edges remain deletable via the existing select + Delete/Backspace
+    flow shipped in C1. Revisit if/when edges need template-based rendering for other
+    reasons.
+
+  - **C3d — Canvas context menu (Add Node by category)** (deferred 2026-06-13,
+    split from C3b for token budget): port the `canvas` branch of `ContextMenu.tsx`
+    — "Add Node" header + Trigger/Action/Condition/Output rows, each calling
+    `addNodeAtPosition`. Extends C3b's `ContextMenuComponent` with a `canvas` branch
+    (local `colorMap`/icon set mirroring `node-palette.ts`'s `var(--node-*)`
+    values); adds `(contextmenu)` on the canvas wrapper div + `documentPointToFlowPoint`
+    (mirroring C2's drop handler), plus `onAddNodeFromMenu` (port of
+    `addNodeAtPosition`'s category-defaults record: `New Trigger`/`New Action`/
+    `If / Else`/`Response`). Depends on C3b's `ContextMenuComponent` and
+    `contextMenu` state shape.
 
 - **C4 — Workflow persistence & chrome**: port `useWorkflowStore.ts` (87 lines,
   plain hook + localStorage despite the name — NOT zustand; keys
@@ -159,11 +185,14 @@ persistence should backfill type-specific defaults on save/load, or treat "unset
 equivalent to "default" throughout (including wherever the backend/execution engine reads
 this config).
 
-### `node-properties` panel needs an accessibility pass
+### `node-properties` panel and `context-menu` need an accessibility pass
 `NodePropertiesComponent`'s `<label hlmLabel>` elements (Label, Description, Method,
 Endpoint, Timeout, Retry on failure, Max retries, Expression, Status Code, Response Body)
 are not associated via `for`/`id` (or `aria-labelledby`) with their corresponding
 `hlmInput`/`hlmTextarea`/`hlm-select`/`hlm-switch` controls, so screen readers may not
-announce label-control relationships correctly. Bundle this with C2's already-deferred node
-palette keyboard-accessibility gap into a single accessibility pass across the
-`frontend-angular` workflow editor once C3b/C4 round out the remaining interactive surface.
+announce label-control relationships correctly. C3b's `ContextMenuComponent` (added
+2026-06-13) has the same class of gap: its Duplicate/Delete Node rows are plain `<div>`s
+with `(click)` handlers and no `role="menuitem"`, `tabindex`, Enter/Space activation, or
+Escape-to-close. Bundle all three (this, C2's already-deferred node-palette drag items, and
+C3b's context menu) into a single accessibility pass across the `frontend-angular` workflow
+editor once C3d/C4 round out the remaining interactive surface.

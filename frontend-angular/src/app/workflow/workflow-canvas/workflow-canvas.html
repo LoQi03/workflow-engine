@@ -10,6 +10,7 @@
       [background]="{ type: 'dots', gap: 20, size: 1, color: 'hsl(var(--canvas-grid))' }"
       [snapGrid]="[16, 16]"
       (connect)="onConnect($event)"
+      (componentNodeEvent)="onComponentNodeEvent($event)"
     >
       <mini-map maskColor="hsl(var(--background) / 0.8)" />
     </vflow>
@@ -44,5 +45,15 @@
 
   @if (selectedNode(); as node) {
     <app-node-properties [node]="node" (deleted)="onNodeDelete($event)" />
+  }
+
+  @if (contextMenu(); as menu) {
+    <app-context-menu
+      [x]="menu.x"
+      [y]="menu.y"
+      (closed)="contextMenu.set(null)"
+      (duplicateNode)="onNodeDuplicate(menu.nodeId); contextMenu.set(null)"
+      (deleteNode)="onNodeDelete(menu.nodeId); contextMenu.set(null)"
+    />
   }
 </div>

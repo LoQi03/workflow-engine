@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, effect, signal, viewChild } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideMaximize, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
-import { Connection, Edge, Node, Vflow, VflowComponent, createEdge, createEdges, createNode, createNodes, isComponentNode } from 'ngx-vflow';
+import { ComponentNodeEvent, Connection, Edge, Node, Vflow, VflowComponent, createEdge, createEdges, createNode, createNodes, isComponentNode } from 'ngx-vflow';
+import { ContextMenuComponent } from '../context-menu/context-menu';
 import { NodePropertiesComponent } from '../node-properties/node-properties';
 import { NODE_TEMPLATE_DATA_TRANSFER_TYPE, NodePaletteComponent, isNodeTemplate } from '../node-palette/node-palette';
 import { WorkflowNodeComponent, WorkflowNodeData } from '../workflow-node/workflow-node';
@@ -28,7 +29,7 @@ function createInitialEdges(): Edge[] {
 @Component({
   selector: 'app-workflow-canvas',
   standalone: true,
-  imports: [Vflow, NgIcon, NodePaletteComponent, NodePropertiesComponent],
+  imports: [Vflow, NgIcon, NodePaletteComponent, NodePropertiesComponent, ContextMenuComponent],
   providers: [provideIcons({ lucideZoomIn, lucideZoomOut, lucideMaximize })],
   templateUrl: './workflow-canvas.html',
   styles: ':host { display: block; width: 100%; height: 100vh; }',
@@ -45,6 +46,8 @@ export class WorkflowCanvasComponent {
     const n = this.nodes().find((x) => x.selected?.());
     return n && isComponentNode<WorkflowNodeData>(n) ? n : undefined;
   });
+
+  protected readonly contextMenu = signal<{ x: number; y: number; nodeId: string } | null>(null);
 
   private readonly vflow = viewChild<VflowComponent>('vflow');
 
@@ -136,6 +139,26 @@ export class WorkflowCanvasComponent {
     this.edges.update((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
   }
 
+  protected onNodeDuplicate(id: string): void {
+    const source = this.nodes().find((node) => node.id === id);
+    if (!source || !isComponentNode<WorkflowNodeData>(source)) return;
+
+    const point = source.point();
+    const node = createNode<WorkflowNodeData>({
+      id: `node-${this.nodeIdCounter++}`,
+      point: { x: point.x + 40, y: point.y + 40 },
+      type: WorkflowNodeComponent,
+      data: { ...source.data!() },
+    });
+    this.nodes.update((nodes) => [...nodes, node]);
+  }
+
+  protected onComponentNodeEvent(event: ComponentNodeEvent<[WorkflowNodeComponent]>): void {
+    if (event.eventName === 'contextMenuRequested') {
+      this.contextMenu.set({ x: event.eventPayload.x, y: event.eventPayload.y, nodeId: event.nodeId });
+    }
+  }
+
   protected onKeyDown(event: KeyboardEvent): void {
     if (event.key !== 'Delete' && event.key !== 'Backspace') return;
 
@@ -154,5 +177,10 @@ export class WorkflowCanvasComponent {
           !edge.selected?.() && !deletedNodeIds.has(edge.source) && !deletedNodeIds.has(edge.target),
       ),
     );
+
+    const menu = this.contextMenu();
+    if (menu && deletedNodeIds.has(menu.nodeId)) {
+      this.contextMenu.set(null);
+    }
   }
 }

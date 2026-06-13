@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCode,
@@ -70,8 +70,19 @@ const colorMap: Record<string, string> = {
   ],
   templateUrl: './workflow-node.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(contextmenu)': 'onContextMenu($event)',
+  },
 })
 export class WorkflowNodeComponent extends CustomNodeComponent<WorkflowNodeData> {
+  readonly contextMenuRequested = output<{ x: number; y: number }>();
+
+  protected onContextMenu(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.contextMenuRequested.emit({ x: event.clientX, y: event.clientY });
+  }
+
   protected readonly icon = computed(() => {
     const data = this.data();
     return iconMap[data?.icon ?? data?.type ?? ''] ?? iconMap['trigger'];
