@@ -1,0 +1,29 @@
+<div class="h-screen w-screen flex items-center justify-center bg-background">
+  <div class="w-full max-w-sm flex flex-col gap-6">
+    <div class="flex flex-col items-center gap-2 text-center">
+      <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 border border-primary/20">
+        <ng-icon name="lucideBuilding2" class="w-6 h-6 text-primary" />
+      </div>
+      <h1 class="text-xl font-bold font-heading text-foreground">Workflow Engine</h1>
+      <p class="text-sm text-muted-foreground">Enter your tenant to continue</p>
+    </div>
+
+    <div class="flex flex-col gap-3 bg-card border border-border rounded-xl p-6 shadow-lg shadow-black/30">
+      <div class="flex flex-col gap-3">
+        <label hlmLabel for="tenant">Select Tenant</label>
+        <input
+          hlmInput
+          id="tenant"
+          placeholder="e.g. acme-corp"
+          [value]="tenant()"
+          (input)="onTenantInput($event)"
+          (keydown.enter)="handleApply()"
+          autofocus
+        />
+      </div>
+      <button hlmBtn class="w-full mt-1" [disabled]="!tenant().trim()" (click)="handleApply()">
+        Apply
+      </button>
+    </div>
+  </div>
+</div>

@@ -149,10 +149,36 @@ Recreate `frontend/src/components/workflow/*` (~1,156 lines across 10 files) and
       `WorkflowManagerComponent`'s Active badge to exist so the reconciliation is
       observable).
 
-### Goal D — Remaining pages, routing, tenant/auth flow
-Recreate `frontend/src/pages/TenantSelector.tsx`, `WorkflowSelector.tsx`, `NotFound.tsx`,
-top-level navigation (`NavLink`), and the tenant-selection/auth flow in Angular routing.
-Depends on Goal B (and partly Goal C) for page chrome.
+### Goal D — Remaining pages, routing, tenant/auth flow (split 2026-06-13)
+Recreate `frontend/src/pages/TenantSelector.tsx`, `WorkflowSelector.tsx`, `NotFound.tsx`, and
+the tenant-selection/auth flow in Angular routing. `frontend/src/components/NavLink.tsx` (28
+lines) is confirmed dead code (not imported anywhere in `frontend/src`, same precedent as
+Goal B's toast/toaster) and is excluded from the port entirely. Split into 2 shippable
+sub-goals:
+
+- **D1 — Tenant gate, 404, and root routing scaffold** (NOW IN PROGRESS, see
+  spec-angular-app-routing-shell.md): port `TenantSelector.tsx` (55 lines) to `/`,
+  `NotFound.tsx` (24 lines) to the `**` wildcard, repurpose the existing `/workflow-canvas`
+  route as `/editor` (TenantSelector's "Apply" navigates there), and remove the
+  now-superseded `/ui-showcase` verification route (per Goal B's review note — its job is
+  done now that the primitives are used throughout the real pages). Ships a complete
+  navigable shell on its own: `/` (tenant gate) -> `/editor` (full canvas editor) ->
+  unknown routes -> 404.
+
+- **D2 — Workflow Selector landing page** (deferred 2026-06-13, split from D1 for token
+  budget): port `WorkflowSelector.tsx` (199 lines — search, pagination, New/saved-workflow
+  list, delete) as the new `/editor` landing page; canvas moves to `/editor/new` and
+  `/editor/:id` with route-param-driven load/reset added to `WorkflowCanvasComponent`.
+  Depends on D1's routing scaffold.
+
+- **D1-cleanup — Remove `/ui-showcase` verification route & fix stale root-shell test**
+  (deferred 2026-06-13, split from D1 for token budget): delete
+  `frontend-angular/src/app/ui-showcase/{ui-showcase.ts,ui-showcase.html}` and its
+  `/ui-showcase` route entry — superseded now that D1 registers the real `/`, `/editor`,
+  `**` routes and the spartan-ng primitives are exercised by real pages. Also fix
+  `app.spec.ts`'s "should render title" test, which already fails pre-D1 (asserts on `<h1>`
+  text that has never matched `app.html`). Independently shippable cleanup; no dependency on
+  D1's new pages.
 
 ## From: Goal B implementation review (2026-06-13)
 
