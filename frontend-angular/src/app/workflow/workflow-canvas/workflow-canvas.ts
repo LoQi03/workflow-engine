@@ -223,6 +223,17 @@ export class WorkflowCanvasComponent {
   protected onComponentNodeEvent(event: ComponentNodeEvent<[WorkflowNodeComponent]>): void {
     if (event.eventName === 'contextMenuRequested') {
       this.contextMenu.set({ type: 'node', x: event.eventPayload.x, y: event.eventPayload.y, nodeId: event.nodeId });
+    } else if (event.eventName === 'selectionRequested') {
+      this.selectNode(event.nodeId);
+    }
+  }
+
+  private selectNode(id: string): void {
+    for (const node of this.nodes()) {
+      node.selected?.set(node.id === id);
+    }
+    for (const edge of this.edges()) {
+      edge.selected?.set(false);
     }
   }
 

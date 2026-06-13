@@ -72,15 +72,21 @@ const colorMap: Record<string, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(contextmenu)': 'onContextMenu($event)',
+    '(click)': 'onClick()',
   },
 })
 export class WorkflowNodeComponent extends CustomNodeComponent<WorkflowNodeData> {
   readonly contextMenuRequested = output<{ x: number; y: number }>();
+  readonly selectionRequested = output<void>();
 
   protected onContextMenu(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.contextMenuRequested.emit({ x: event.clientX, y: event.clientY });
+  }
+
+  protected onClick(): void {
+    this.selectionRequested.emit();
   }
 
   protected readonly icon = computed(() => {
