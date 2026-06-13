@@ -1,7 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideMaximize, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
 import { ComponentNodeEvent, Connection, Edge, Node, Vflow, VflowComponent, createEdge, createEdges, createNode, createNodes, isComponentNode } from 'ngx-vflow';
+import { map } from 'rxjs';
 import { ContextMenuComponent } from '../context-menu/context-menu';
 import { NodePropertiesComponent } from '../node-properties/node-properties';
 import { NODE_TEMPLATE_DATA_TRANSFER_TYPE, NodePaletteComponent, isNodeTemplate } from '../node-palette/node-palette';
@@ -44,6 +47,8 @@ function createInitialEdges(): Edge[] {
 })
 export class WorkflowCanvasComponent {
   protected readonly workflowStore = inject(WorkflowStoreService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly nodes = signal<Node[]>(createInitialNodes());
   protected readonly edges = signal<Edge[]>(createInitialEdges());
@@ -64,6 +69,10 @@ export class WorkflowCanvasComponent {
 
   private readonly vflow = viewChild<VflowComponent>('vflow');
 
+  private readonly routeWorkflowId = toSignal(this.route.paramMap.pipe(map((params) => params.get('id'))), {
+    initialValue: this.route.snapshot.paramMap.get('id'),
+  });
+
   private hasFitView = false;
   private edgeIdCounter = 0;
   private nodeIdCounter = 0;
@@ -74,6 +83,19 @@ export class WorkflowCanvasComponent {
       if (!vflow || this.hasFitView || !vflow.initialized()) return;
       this.hasFitView = true;
       vflow.fitView();
+    });
+
+    effect(() => {
+      const id = this.routeWorkflowId();
+      untracked(() => {
+        if (id === null) {
+          this.onNewWorkflow();
+          return;
+        }
+        if (!this.onLoadWorkflow(id)) {
+          this.router.navigate(['/editor']);
+        }
+      });
     });
   }
 
@@ -144,7 +166,9 @@ export class WorkflowCanvasComponent {
   }
 
   protected fitView(): void {
-    this.vflow()?.fitView();
+    const vflow = this.vflow();
+    if (!vflow?.initialized()) return;
+    vflow.fitView();
   }
 
   protected onSaveConfirm(name: string): void {
@@ -158,9 +182,9 @@ export class WorkflowCanvasComponent {
     this.showManager.set(true);
   }
 
-  protected onLoadWorkflow(id: string): void {
+  protected onLoadWorkflow(id: string): boolean {
     const wf = this.workflowStore.load(id);
-    if (!wf) return;
+    if (!wf) return false;
 
     this.nodes.set(fromSavedNodes(wf.nodes));
     this.edges.set(fromSavedEdges(wf.edges));
@@ -169,6 +193,7 @@ export class WorkflowCanvasComponent {
     this.reseedCounters();
     this.showManager.set(false);
     this.fitView();
+    return true;
   }
 
   protected onDeleteWorkflow(id: string): void {

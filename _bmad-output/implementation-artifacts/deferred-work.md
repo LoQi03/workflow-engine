@@ -361,3 +361,25 @@ confirmation prompt before New/Load when the canvas has unsaved changes.
 C3a/C3b/C3d's panels and context-menu rows. This mirrors `WorkflowManager.tsx`, so it is not a
 regression introduced by C4b-3. Widen the planned accessibility pass (see C3a's review note)
 to also cover `WorkflowManagerComponent`'s dialog semantics and row interactions.
+
+## From: D2 implementation review (2026-06-14)
+
+Surfaced during step-04 review of `spec-angular-workflow-selector-landing.md` (WorkflowSelector
+landing page port). Not blocking for D2; relevant to later goals.
+
+### `workflow-selector.html`'s rows and delete button extend the existing accessibility-pass gap
+Each saved-workflow row is a plain `<div>` with `(click)="onSelect(wf.id)"` and no
+`role="button"`/`tabindex`/keyboard activation, and its delete button is only visible via
+`opacity-0 group-hover:opacity-100` (no focus-visible fallback) with no `aria-label` on the
+icon-only `lucideTrash2` button. This mirrors `WorkflowSelector.tsx`, so it is not a regression
+introduced by D2 — but it's now present in a fourth place. Widen the planned accessibility pass
+(see C3a/C3b/C3d/C4b-3's review notes) to also cover `WorkflowSelectorComponent`'s row
+interactions and delete-button visibility/labeling.
+
+### Pagination renders one button per page with no cap
+`WorkflowSelectorComponent.pageNumbers()` (`workflow-selector.ts`) generates
+`Array.from({ length: totalPages() }, ...)` with no truncation/ellipsis, so a large number of
+saved workflows (e.g. 100+, i.e. 17+ pages at `ITEMS_PER_PAGE = 6`) would render that many
+inline pagination buttons. This mirrors `WorkflowSelector.tsx`'s identical pagination, so it's
+not a regression introduced by D2. Revisit if/when the saved-workflow count is expected to grow
+large enough for this to matter in practice (e.g. add ellipsis/sliding-window pagination).
