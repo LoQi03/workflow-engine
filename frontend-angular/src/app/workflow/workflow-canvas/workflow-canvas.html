@@ -1,61 +1,65 @@
-<div class="flex w-full h-full overflow-hidden">
-  <app-node-palette />
+<div class="h-full w-full flex flex-col overflow-hidden">
+  <app-top-bar [workflowName]="workflowName()" (newWorkflow)="onNewWorkflow()" />
 
-  <div class="relative flex-1 h-full" (dragover)="onDragOver($event)" (drop)="onDrop($event)" (contextmenu)="onCanvasContextMenu($event)">
-    <vflow
-      #vflow
-      view="auto"
-      [nodes]="nodes()"
-      [edges]="edges()"
-      [background]="{ type: 'dots', gap: 20, size: 1, color: 'hsl(var(--canvas-grid))' }"
-      [snapGrid]="[16, 16]"
-      (connect)="onConnect($event)"
-      (componentNodeEvent)="onComponentNodeEvent($event)"
-    >
-      <mini-map maskColor="hsl(var(--background) / 0.8)" />
-    </vflow>
+  <div class="flex flex-1 overflow-hidden">
+    <app-node-palette />
 
-    <div class="absolute bottom-4 right-4 flex flex-col gap-1 rounded-lg border border-border bg-card p-1 shadow-md">
-      <button
-        type="button"
-        class="flex items-center justify-center w-8 h-8 rounded-md text-foreground hover:bg-accent"
-        aria-label="Zoom in"
-        (click)="zoomIn()"
+    <div class="relative flex-1 h-full" (dragover)="onDragOver($event)" (drop)="onDrop($event)" (contextmenu)="onCanvasContextMenu($event)">
+      <vflow
+        #vflow
+        view="auto"
+        [nodes]="nodes()"
+        [edges]="edges()"
+        [background]="{ type: 'dots', gap: 20, size: 1, color: 'hsl(var(--canvas-grid))' }"
+        [snapGrid]="[16, 16]"
+        (connect)="onConnect($event)"
+        (componentNodeEvent)="onComponentNodeEvent($event)"
       >
-        <ng-icon name="lucideZoomIn" class="w-4 h-4" />
-      </button>
-      <button
-        type="button"
-        class="flex items-center justify-center w-8 h-8 rounded-md text-foreground hover:bg-accent"
-        aria-label="Zoom out"
-        (click)="zoomOut()"
-      >
-        <ng-icon name="lucideZoomOut" class="w-4 h-4" />
-      </button>
-      <button
-        type="button"
-        class="flex items-center justify-center w-8 h-8 rounded-md text-foreground hover:bg-accent"
-        aria-label="Fit view"
-        (click)="fitView()"
-      >
-        <ng-icon name="lucideMaximize" class="w-4 h-4" />
-      </button>
+        <mini-map maskColor="hsl(var(--background) / 0.8)" />
+      </vflow>
+
+      <div class="absolute bottom-4 right-4 flex flex-col gap-1 rounded-lg border border-border bg-card p-1 shadow-md">
+        <button
+          type="button"
+          class="flex items-center justify-center w-8 h-8 rounded-md text-foreground hover:bg-accent"
+          aria-label="Zoom in"
+          (click)="zoomIn()"
+        >
+          <ng-icon name="lucideZoomIn" class="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          class="flex items-center justify-center w-8 h-8 rounded-md text-foreground hover:bg-accent"
+          aria-label="Zoom out"
+          (click)="zoomOut()"
+        >
+          <ng-icon name="lucideZoomOut" class="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          class="flex items-center justify-center w-8 h-8 rounded-md text-foreground hover:bg-accent"
+          aria-label="Fit view"
+          (click)="fitView()"
+        >
+          <ng-icon name="lucideMaximize" class="w-4 h-4" />
+        </button>
+      </div>
     </div>
+
+    @if (selectedNode(); as node) {
+      <app-node-properties [node]="node" (deleted)="onNodeDelete($event)" />
+    }
+
+    @if (contextMenu(); as menu) {
+      <app-context-menu
+        [x]="menu.x"
+        [y]="menu.y"
+        [type]="menu.type"
+        (closed)="contextMenu.set(null)"
+        (duplicateNode)="menu.type === 'node' && onNodeDuplicate(menu.nodeId); contextMenu.set(null)"
+        (deleteNode)="menu.type === 'node' && onNodeDelete(menu.nodeId); contextMenu.set(null)"
+        (addNode)="menu.type === 'canvas' && onAddNodeFromMenu($event, menu.flowPoint); contextMenu.set(null)"
+      />
+    }
   </div>
-
-  @if (selectedNode(); as node) {
-    <app-node-properties [node]="node" (deleted)="onNodeDelete($event)" />
-  }
-
-  @if (contextMenu(); as menu) {
-    <app-context-menu
-      [x]="menu.x"
-      [y]="menu.y"
-      [type]="menu.type"
-      (closed)="contextMenu.set(null)"
-      (duplicateNode)="menu.type === 'node' && onNodeDuplicate(menu.nodeId); contextMenu.set(null)"
-      (deleteNode)="menu.type === 'node' && onNodeDelete(menu.nodeId); contextMenu.set(null)"
-      (addNode)="menu.type === 'canvas' && onAddNodeFromMenu($event, menu.flowPoint); contextMenu.set(null)"
-    />
-  }
 </div>

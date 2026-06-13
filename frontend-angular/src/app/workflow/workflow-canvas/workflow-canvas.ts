@@ -5,6 +5,7 @@ import { ComponentNodeEvent, Connection, Edge, Node, Vflow, VflowComponent, crea
 import { ContextMenuComponent } from '../context-menu/context-menu';
 import { NodePropertiesComponent } from '../node-properties/node-properties';
 import { NODE_TEMPLATE_DATA_TRANSFER_TYPE, NodePaletteComponent, isNodeTemplate } from '../node-palette/node-palette';
+import { TopBarComponent } from '../top-bar/top-bar';
 import { WorkflowNodeComponent, WorkflowNodeData } from '../workflow-node/workflow-node';
 
 function createInitialNodes(): Node[] {
@@ -29,7 +30,7 @@ function createInitialEdges(): Edge[] {
 @Component({
   selector: 'app-workflow-canvas',
   standalone: true,
-  imports: [Vflow, NgIcon, NodePaletteComponent, NodePropertiesComponent, ContextMenuComponent],
+  imports: [Vflow, NgIcon, NodePaletteComponent, NodePropertiesComponent, ContextMenuComponent, TopBarComponent],
   providers: [provideIcons({ lucideZoomIn, lucideZoomOut, lucideMaximize })],
   templateUrl: './workflow-canvas.html',
   styles: ':host { display: block; width: 100%; height: 100vh; }',
@@ -41,6 +42,7 @@ function createInitialEdges(): Edge[] {
 export class WorkflowCanvasComponent {
   protected readonly nodes = signal<Node[]>(createInitialNodes());
   protected readonly edges = signal<Edge[]>(createInitialEdges());
+  protected readonly workflowName = signal('My Workflow');
 
   protected readonly selectedNode = computed(() => {
     const n = this.nodes().find((x) => x.selected?.());
@@ -136,6 +138,15 @@ export class WorkflowCanvasComponent {
 
   protected fitView(): void {
     this.vflow()?.fitView();
+  }
+
+  protected onNewWorkflow(): void {
+    this.nodes.set(createInitialNodes());
+    this.edges.set(createInitialEdges());
+    this.workflowName.set('Untitled Workflow');
+    this.nodeIdCounter = 0;
+    this.edgeIdCounter = 0;
+    this.fitView();
   }
 
   protected onNodeDelete(id: string): void {

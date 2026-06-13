@@ -86,15 +86,44 @@ Recreate `frontend/src/components/workflow/*` (~1,156 lines across 10 files) and
     `save`/`load`/`remove`/`refresh` API + `workflows`/`activeId` signals). No UI changes
     — standalone, mergeable on its own; gates C4b.
 
-  - **C4b — Editor chrome (TopBar + Save + Workflow Manager)** (deferred 2026-06-13,
-    split from C4 for token budget — same reasoning as C3d): port `TopBarComponent`
-    (title, New/Open/Save/Run buttons; Undo/Redo/Settings remain visual-only, matching
-    React), `SaveDialogComponent` (name + save modal), and `WorkflowManagerComponent`
-    (list/load/delete saved workflows), wired into `/workflow-canvas` via C4a's
-    `WorkflowStoreService`. "New Workflow" resets the canvas to a blank/default state.
-    `WorkflowEditor.tsx`'s `WorkflowSelector` landing-page branch is NOT ported here —
-    `/workflow-canvas` keeps always showing the editor (as today); `WorkflowSelector`
-    remains Goal D's responsibility. Depends on C4a.
+  - **C4b — Editor chrome (TopBar + Save + Workflow Manager)** (split 2026-06-13 into
+    C4b-1/C4b-2/C4b-3, same reasoning as C3d): port `TopBarComponent` (title, New/Open/
+    Save/Run buttons; Undo/Redo/Settings remain visual-only, matching React),
+    `SaveDialogComponent` (name + save modal), and `WorkflowManagerComponent` (list/load/
+    delete saved workflows), wired into `/workflow-canvas` via C4a's
+    `WorkflowStoreService`. `WorkflowEditor.tsx`'s `WorkflowSelector` landing-page branch is
+    NOT ported here — `/workflow-canvas` keeps always showing the editor (as today);
+    `WorkflowSelector` remains Goal D's responsibility. Depends on C4a.
+
+    - **C4b-1 — TopBar + New Workflow** (NOW IN PROGRESS, see
+      spec-angular-workflow-topbar-new.md): `TopBarComponent` (all 7 controls), wired into
+      `workflow-canvas.html` above the palette+canvas row. Only `newWorkflow` is bound
+      ("New Workflow" resets the canvas to `createInitialNodes()`/`createInitialEdges()`,
+      `workflowName` = `'Untitled Workflow'`, id counters reset to 0); `save`/`openManager`
+      stay unbound (like Undo/Redo/Settings) until C4b-2/C4b-3.
+
+    - **C4b-2 — SaveDialog + Save** (deferred 2026-06-13, split from C4b-1 for token
+      budget): port `SaveDialogComponent` (name input + Save/Cancel modal, `linkedSignal`
+      for the editable name), bind C4b-1's `TopBar.save` output to open it, and add
+      `workflowName`/`showSaveDialog` state + `onSaveConfirm` (calls
+      `WorkflowStoreService.save` via `toSavedNodes`/`toSavedEdges`) to
+      `WorkflowCanvasComponent`. Depends on C4a and C4b-1.
+
+    - **C4b-3 — Workflow Manager (Open/Load/Delete)** (deferred 2026-06-13, split from
+      C4b for token budget): port `WorkflowManagerComponent` (list, Active badge, date
+      formatting, node count, delete row), bind `TopBar.openManager` to open it, and add
+      `onOpenManager`/`onLoadWorkflow`/`onDeleteWorkflow` plus a `reseedCounters` helper to
+      `WorkflowCanvasComponent` (resolves C1/C2's node/edge-ID-coordination items above, for
+      the Load path). Also resolves the two C4a-review items below: decide on
+      `SavedWorkflow.nodes`/`edges` validation before `fromSavedNodes`/`fromSavedEdges`, and
+      on `activeId` reconciliation for the "Active" badge. Depends on C4a, C4b-1, and
+      C4b-2 (needs `workflowName`/`showSaveDialog` state to coexist with `showManager`).
+
+    - **C4b-1 review item** (deferred 2026-06-13): `onNewWorkflow` resets
+      `nodes`/`edges`/id-counters but not the `contextMenu` signal — a context menu open at
+      click time keeps referencing a now-removed node/edge id (its actions become no-ops via
+      existing filters, so not user-visible, but stale). C4b-3 should clear `contextMenu` in
+      `onNewWorkflow` and in the new Load path (`reseedCounters`) for consistency.
 
 ### Goal D — Remaining pages, routing, tenant/auth flow
 Recreate `frontend/src/pages/TenantSelector.tsx`, `WorkflowSelector.tsx`, `NotFound.tsx`,

@@ -1,0 +1,65 @@
+<div class="h-12 bg-card border-b border-border flex items-center justify-between px-4">
+  <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2">
+      <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+      <h1 class="text-sm font-bold font-heading text-foreground">FlowCraft</h1>
+    </div>
+    <span class="text-xs text-muted-foreground font-mono px-2 py-0.5 rounded bg-muted">v1.0</span>
+    <div class="h-4 w-px bg-border mx-1"></div>
+    <span class="text-xs text-foreground font-medium truncate max-w-[200px]">{{ workflowName() }}</span>
+  </div>
+
+  <div class="flex items-center gap-1">
+    <button
+      type="button"
+      class="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground"
+      title="New Workflow"
+      (click)="newWorkflow.emit()"
+    >
+      <ng-icon name="lucideFilePlus" class="w-4 h-4" />
+    </button>
+    <button
+      type="button"
+      class="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground"
+      title="Open Workflow"
+      (click)="openManager.emit()"
+    >
+      <ng-icon name="lucideFolderOpen" class="w-4 h-4" />
+    </button>
+    <div class="h-4 w-px bg-border mx-1"></div>
+    <button
+      type="button"
+      class="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground"
+    >
+      <ng-icon name="lucideUndo2" class="w-4 h-4" />
+    </button>
+    <button
+      type="button"
+      class="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground"
+    >
+      <ng-icon name="lucideRedo2" class="w-4 h-4" />
+    </button>
+    <div class="h-4 w-px bg-border mx-1"></div>
+    <button
+      type="button"
+      class="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground"
+    >
+      <ng-icon name="lucideSettings" class="w-4 h-4" />
+    </button>
+    <button
+      type="button"
+      class="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground"
+      title="Save"
+      (click)="save.emit()"
+    >
+      <ng-icon name="lucideSave" class="w-4 h-4" />
+    </button>
+    <button
+      type="button"
+      class="h-8 ml-2 px-3 flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 font-heading text-xs font-semibold"
+    >
+      <ng-icon name="lucidePlay" class="w-3.5 h-3.5" />
+      Run
+    </button>
+  </div>
+</div>
