@@ -1,0 +1,58 @@
+<main class="mx-auto max-w-2xl space-y-8 p-8">
+  <h1 class="text-2xl font-bold">UI Primitives Showcase</h1>
+
+  <section class="space-y-2">
+    <h2 class="text-muted-foreground text-sm font-semibold">Button</h2>
+    <button hlmBtn variant="secondary">Secondary button</button>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-muted-foreground text-sm font-semibold">Input + Label</h2>
+    <div class="grid max-w-sm gap-1.5">
+      <label hlmLabel for="name">Name</label>
+      <input hlmInput id="name" placeholder="Enter your name" />
+    </div>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-muted-foreground text-sm font-semibold">Select</h2>
+    <hlm-select class="w-48" [(value)]="selectedFruit">
+      <hlm-select-trigger>
+        <hlm-select-value placeholder="Select a fruit" />
+      </hlm-select-trigger>
+      <ng-template hlmSelectPortal>
+        <hlm-select-content>
+          <hlm-select-label>Fruits</hlm-select-label>
+          <hlm-select-item value="apple">Apple</hlm-select-item>
+          <hlm-select-item value="banana">Banana</hlm-select-item>
+          <hlm-select-item value="cherry">Cherry</hlm-select-item>
+        </hlm-select-content>
+      </ng-template>
+    </hlm-select>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-muted-foreground text-sm font-semibold">Switch</h2>
+    <div class="flex items-center gap-2">
+      <hlm-switch inputId="notifications" [(checked)]="notificationsEnabled" />
+      <label hlmLabel for="notifications">Enable notifications</label>
+    </div>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-muted-foreground text-sm font-semibold">Textarea</h2>
+    <textarea hlmTextarea class="max-w-sm" placeholder="Write a description..."></textarea>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-muted-foreground text-sm font-semibold">Tooltip</h2>
+    <button hlmBtn variant="outline" hlmTooltip="This is a tooltip">Hover me</button>
+  </section>
+
+  <section class="space-y-2">
+    <h2 class="text-muted-foreground text-sm font-semibold">Toast (sonner)</h2>
+    <button hlmBtn (click)="showToast()">Show toast</button>
+  </section>
+</main>
+
+<hlm-toaster />
