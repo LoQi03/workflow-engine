@@ -196,3 +196,26 @@ with `(click)` handlers and no `role="menuitem"`, `tabindex`, Enter/Space activa
 Escape-to-close. Bundle all three (this, C2's already-deferred node-palette drag items, and
 C3b's context menu) into a single accessibility pass across the `frontend-angular` workflow
 editor once C3d/C4 round out the remaining interactive surface.
+
+## From: C3d implementation review (2026-06-13)
+
+Surfaced during step-04 review of `spec-angular-workflow-canvas-context-menu.md` (canvas
+"Add Node" context menu port). Not blocking for C3d; relevant to later goals.
+
+### `onAddNodeFromMenu`'s category defaults duplicate `node-palette.ts`'s template data
+`WorkflowCanvasComponent.onAddNodeFromMenu` (`workflow-canvas.ts`) hardcodes a `defaults`
+record (`New Trigger`/`New Action`/`If / Else`/`Response` with `icon`/`description`) that
+overlaps with — but isn't identical to — the canonical `nodeTemplates` already defined in
+`node-palette.ts` (e.g. its `condition` template says `'Branch on condition'` vs this
+record's `'Add condition'`). This mirrors `WorkflowCanvas.tsx`'s `addNodeAtPosition`, so it's
+not a regression introduced by C3d, but it's now a second source of truth that can drift from
+the palette's. When C4 or a later pass touches node-template data, consider deriving
+right-click "Add Node" defaults from `node-palette.ts`'s `nodeTemplates` (e.g. first template
+per category) instead of a separate hardcoded record.
+
+### `context-menu`'s new "Add Node" rows extend the existing accessibility gap
+The accessibility note above already flagged C3b's Duplicate/Delete Node rows (plain `<div>`
++ `(click)`, no `role="menuitem"`/keyboard activation) for a bundled pass. C3d's new
+canvas-branch rows (header + Trigger/Action/Condition/Output) are built the same way and have
+the same gap. No new tracking item needed — just widen the scope of that planned pass to
+cover all six interactive rows in `context-menu.html` (2 node-branch + 4 canvas-branch).

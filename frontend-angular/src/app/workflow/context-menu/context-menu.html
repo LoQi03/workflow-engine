@@ -3,19 +3,53 @@
   [style.left.px]="left()"
   [style.top.px]="top()"
 >
-  <div
-    class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-foreground"
-    (click)="duplicateNode.emit()"
-  >
-    <ng-icon name="lucideCopy" class="w-3.5 h-3.5 text-muted-foreground" />
-    Duplicate
-  </div>
-  <div class="h-px bg-border my-1"></div>
-  <div
-    class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-destructive"
-    (click)="deleteNode.emit()"
-  >
-    <ng-icon name="lucideTrash2" class="w-3.5 h-3.5" />
-    Delete Node
-  </div>
+  @if (type() === 'node') {
+    <div
+      class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-foreground"
+      (click)="duplicateNode.emit()"
+    >
+      <ng-icon name="lucideCopy" class="w-3.5 h-3.5 text-muted-foreground" />
+      Duplicate
+    </div>
+    <div class="h-px bg-border my-1"></div>
+    <div
+      class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-destructive"
+      (click)="deleteNode.emit()"
+    >
+      <ng-icon name="lucideTrash2" class="w-3.5 h-3.5" />
+      Delete Node
+    </div>
+  } @else {
+    <div class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+      Add Node
+    </div>
+    <div
+      class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-foreground"
+      (click)="addNode.emit('trigger')"
+    >
+      <ng-icon name="lucideZap" class="w-3.5 h-3.5" [style.color]="'hsl(var(--node-trigger))'" />
+      Trigger
+    </div>
+    <div
+      class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-foreground"
+      (click)="addNode.emit('action')"
+    >
+      <ng-icon name="lucidePlay" class="w-3.5 h-3.5" [style.color]="'hsl(var(--node-action))'" />
+      Action
+    </div>
+    <div
+      class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-foreground"
+      (click)="addNode.emit('condition')"
+    >
+      <ng-icon name="lucideGitBranch" class="w-3.5 h-3.5" [style.color]="'hsl(var(--node-condition))'" />
+      Condition
+    </div>
+    <div
+      class="flex items-center gap-2.5 px-3 py-2 text-xs rounded-md cursor-pointer transition-colors hover:bg-muted text-foreground"
+      (click)="addNode.emit('output')"
+    >
+      <ng-icon name="lucideSend" class="w-3.5 h-3.5" [style.color]="'hsl(var(--node-output))'" />
+      Output
+    </div>
+  }
 </div>

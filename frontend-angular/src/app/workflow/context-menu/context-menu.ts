@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCopy, lucideTrash2 } from '@ng-icons/lucide';
+import { lucideCopy, lucideGitBranch, lucidePlay, lucideSend, lucideTrash2, lucideZap } from '@ng-icons/lucide';
 
 @Component({
   selector: 'app-context-menu',
   standalone: true,
   imports: [NgIcon],
-  providers: [provideIcons({ lucideCopy, lucideTrash2 })],
+  providers: [provideIcons({ lucideCopy, lucideTrash2, lucideZap, lucidePlay, lucideGitBranch, lucideSend })],
   templateUrl: './context-menu.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -16,10 +16,12 @@ import { lucideCopy, lucideTrash2 } from '@ng-icons/lucide';
 export class ContextMenuComponent {
   readonly x = input.required<number>();
   readonly y = input.required<number>();
+  readonly type = input.required<'node' | 'canvas'>();
 
   readonly closed = output<void>();
   readonly duplicateNode = output<void>();
   readonly deleteNode = output<void>();
+  readonly addNode = output<'trigger' | 'action' | 'condition' | 'output'>();
 
   private readonly elementRef = inject(ElementRef<HTMLElement>);
 

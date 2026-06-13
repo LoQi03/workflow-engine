@@ -1,7 +1,7 @@
 <div class="flex w-full h-full overflow-hidden">
   <app-node-palette />
 
-  <div class="relative flex-1 h-full" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+  <div class="relative flex-1 h-full" (dragover)="onDragOver($event)" (drop)="onDrop($event)" (contextmenu)="onCanvasContextMenu($event)">
     <vflow
       #vflow
       view="auto"
@@ -51,9 +51,11 @@
     <app-context-menu
       [x]="menu.x"
       [y]="menu.y"
+      [type]="menu.type"
       (closed)="contextMenu.set(null)"
-      (duplicateNode)="onNodeDuplicate(menu.nodeId); contextMenu.set(null)"
-      (deleteNode)="onNodeDelete(menu.nodeId); contextMenu.set(null)"
+      (duplicateNode)="menu.type === 'node' && onNodeDuplicate(menu.nodeId); contextMenu.set(null)"
+      (deleteNode)="menu.type === 'node' && onNodeDelete(menu.nodeId); contextMenu.set(null)"
+      (addNode)="menu.type === 'canvas' && onAddNodeFromMenu($event, menu.flowPoint); contextMenu.set(null)"
     />
   }
 </div>

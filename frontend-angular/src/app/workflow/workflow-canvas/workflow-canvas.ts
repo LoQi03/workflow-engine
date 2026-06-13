@@ -47,7 +47,11 @@ export class WorkflowCanvasComponent {
     return n && isComponentNode<WorkflowNodeData>(n) ? n : undefined;
   });
 
-  protected readonly contextMenu = signal<{ x: number; y: number; nodeId: string } | null>(null);
+  protected readonly contextMenu = signal<
+    | { type: 'node'; x: number; y: number; nodeId: string }
+    | { type: 'canvas'; x: number; y: number; flowPoint: { x: number; y: number } }
+    | null
+  >(null);
 
   private readonly vflow = viewChild<VflowComponent>('vflow');
 
@@ -155,8 +159,35 @@ export class WorkflowCanvasComponent {
 
   protected onComponentNodeEvent(event: ComponentNodeEvent<[WorkflowNodeComponent]>): void {
     if (event.eventName === 'contextMenuRequested') {
-      this.contextMenu.set({ x: event.eventPayload.x, y: event.eventPayload.y, nodeId: event.nodeId });
+      this.contextMenu.set({ type: 'node', x: event.eventPayload.x, y: event.eventPayload.y, nodeId: event.nodeId });
     }
+  }
+
+  protected onCanvasContextMenu(event: MouseEvent): void {
+    event.preventDefault();
+
+    const vflow = this.vflow();
+    if (!vflow) return;
+
+    const flowPoint = vflow.documentPointToFlowPoint({ x: event.clientX, y: event.clientY });
+    this.contextMenu.set({ type: 'canvas', x: event.clientX, y: event.clientY, flowPoint });
+  }
+
+  protected onAddNodeFromMenu(category: 'trigger' | 'action' | 'condition' | 'output', point: { x: number; y: number }): void {
+    const defaults: Record<'trigger' | 'action' | 'condition' | 'output', { label: string; icon: string; description: string }> = {
+      trigger: { label: 'New Trigger', icon: 'trigger', description: 'Configure trigger' },
+      action: { label: 'New Action', icon: 'action', description: 'Configure action' },
+      condition: { label: 'If / Else', icon: 'condition', description: 'Add condition' },
+      output: { label: 'Response', icon: 'output', description: 'Return result' },
+    };
+    const d = defaults[category];
+    const node = createNode<WorkflowNodeData>({
+      id: `node-${this.nodeIdCounter++}`,
+      point,
+      type: WorkflowNodeComponent,
+      data: { label: d.label, type: category, icon: d.icon, description: d.description },
+    });
+    this.nodes.update((nodes) => [...nodes, node]);
   }
 
   protected onKeyDown(event: KeyboardEvent): void {
@@ -179,7 +210,7 @@ export class WorkflowCanvasComponent {
     );
 
     const menu = this.contextMenu();
-    if (menu && deletedNodeIds.has(menu.nodeId)) {
+    if (menu && menu.type === 'node' && deletedNodeIds.has(menu.nodeId)) {
       this.contextMenu.set(null);
     }
   }
